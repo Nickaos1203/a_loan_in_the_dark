@@ -12,6 +12,7 @@ class User(SQLModel, table=True):
     hashed_password: str = Field(nullable=False)
     is_staff: bool = Field(default=False)
     is_active: bool = Field(default=False)
+    first_connection: bool = Field(default=True)
     profile_picture: Optional[str] = Field(default=None)
 
     def verify_password(self, password: str) -> bool:

@@ -23,8 +23,9 @@ def create_user(db: Session, user_create: UserCreate) -> UserRead:
     db_user = User(
         email=user_create.email,
         hashed_password=hashed_password,
-        is_staff=False,  # Par défaut, un nouvel utilisateur n'est pas staff
-        is_active=True,  # Par défaut, l'utilisateur est actif
+        is_staff=user_create.is_staff,
+        is_active=True,
+        first_connection=True,  # Par défaut, l'utilisateur ne s'est pas encore co
     )
     db.add(db_user)
     db.commit()
@@ -37,6 +38,7 @@ def create_user(db: Session, user_create: UserCreate) -> UserRead:
         is_staff=db_user.is_staff,
         is_active=db_user.is_active,
         profile_picture=db_user.profile_picture,
+        first_connection=db_user.first_connection,
     )
 
 def get_user_by_id(db: Session, user_id: UUID) -> UserRead:
