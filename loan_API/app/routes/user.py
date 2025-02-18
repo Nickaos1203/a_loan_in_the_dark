@@ -5,12 +5,19 @@ from app.services.user import create_user, get_user_by_id
 from app.database import get_db
 from sqlalchemy.orm import Session
 from uuid import UUID
+from app.dependencies import get_current_user
+from app.models.user import User
 
 router = APIRouter()
 
 @router.post("/", response_model=UserRead, status_code=status.HTTP_201_CREATED)
-def create_new_user(user_create: UserCreate, db: Session = Depends(get_db)):
-    """Crée un nouvel utilisateur"""
+def create_new_user(user_create: UserCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    """Crée un nouvel utilisateur, accessible uniquement pour les utilisateurs staff"""
+    if not current_user.is_staff:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Accès interdit. Vous devez être un utilisateur staff.",
+        )
     return create_user(db=db, user_create=user_create)
 
 @router.get("/{user_id}", response_model=UserRead)

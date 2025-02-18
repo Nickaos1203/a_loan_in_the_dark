@@ -56,4 +56,5 @@ def get_user_by_id(db: Session, user_id: UUID) -> UserRead:
         is_staff=db_user.is_staff,
         is_active=db_user.is_active,
         profile_picture=db_user.profile_picture,
+        first_connection=db_user.first_connection,
     )
