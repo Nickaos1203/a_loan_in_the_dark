@@ -7,6 +7,10 @@ class UserCreate(BaseModel):
     password: str
     is_staff: bool
 
+class UserConnection(BaseModel):
+    email: EmailStr
+    password: str
+
 class UserRead(BaseModel):
     id: UUID
     email: EmailStr
