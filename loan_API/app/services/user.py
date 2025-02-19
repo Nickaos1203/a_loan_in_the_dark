@@ -3,10 +3,8 @@ from app.schemas.user import UserCreate, UserRead
 from app.database import get_db
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
-from passlib.context import CryptContext
 from uuid import UUID
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def create_user(db: Session, user_create: UserCreate) -> UserRead:
     """Crée un utilisateur avec un mot de passe hashé et le sauvegarde dans la base de données"""
@@ -19,7 +17,7 @@ def create_user(db: Session, user_create: UserCreate) -> UserRead:
         )
     
     # Crée un nouvel utilisateur
-    hashed_password = pwd_context.hash(user_create.password)
+    hashed_password = User.hash_password(user_create.password)
     db_user = User(
         email=user_create.email,
         hashed_password=hashed_password,

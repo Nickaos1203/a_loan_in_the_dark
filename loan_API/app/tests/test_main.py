@@ -1,9 +1,26 @@
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 from app.main import app
+from app.models.user import User
 from app.services.user import create_user
 from app.schemas.user import UserCreate
 from app.database import get_db
+from sqlmodel import SQLModel
+
+TEST_DATABASE_URL = "sqlite:///test.db"
+engine = create_engine(TEST_DATABASE_URL, connect_args={"check_same_thread": False})
+TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+def override_get_db():
+    db = TestingSessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+app.dependency_overrides[get_db] = override_get_db
 
 client = TestClient(app)
 
@@ -21,8 +38,9 @@ staff_user = {
 
 @pytest.fixture(scope="module")
 def setup_db():
-    """Crée un super utilisateur et retourne un token d'authentification"""
-    db = next(get_db())  # Récupère la session de base de données de test
+    SQLModel.metadata.create_all(engine)
+    db = TestingSessionLocal()  # Utiliser la base de test
+    db.commit()
 
     # 1. Créer le super utilisateur
     super_user_data = UserCreate(**super_user)

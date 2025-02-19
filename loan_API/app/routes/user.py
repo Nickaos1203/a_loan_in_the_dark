@@ -1,4 +1,3 @@
-# app/routes/user.py
 from fastapi import APIRouter, Depends, HTTPException, status
 from app.schemas.user import UserCreate, UserRead
 from app.services.user import create_user, get_user_by_id
@@ -24,3 +23,11 @@ def create_new_user(user_create: UserCreate, db: Session = Depends(get_db), curr
 def read_user(user_id: UUID, db: Session = Depends(get_db)):
     """Récupère un utilisateur par son ID"""
     return get_user_by_id(db=db, user_id=user_id)
+
+@router.get("/me")
+def read_users_me(current_user: User = Depends(get_current_user)):
+    return {
+        "id": current_user.id,
+        "email": current_user.email,
+        "full_name": current_user.full_name
+    }

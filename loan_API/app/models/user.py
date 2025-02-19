@@ -1,9 +1,7 @@
 from sqlmodel import SQLModel, Field
 from typing import Optional
 from uuid import uuid4, UUID
-from passlib.context import CryptContext
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+import bcrypt
 
 
 class User(SQLModel, table=True):
@@ -17,9 +15,10 @@ class User(SQLModel, table=True):
 
     def verify_password(self, password: str) -> bool:
         """Vérifie si le mot de passe fourni correspond au hash stocké"""
-        return pwd_context.verify(password, self.hashed_password)
+        return bcrypt.checkpw(password.encode(), self.hashed_password.encode())
 
     @staticmethod
     def hash_password(password: str) -> str:
-        """Hash un mot de passe avec bcrypt"""
-        return pwd_context.hash(password)
+        salt = bcrypt.gensalt()
+        hashed = bcrypt.hashpw(password.encode(), salt)
+        return hashed.decode()
