@@ -9,7 +9,7 @@ from app.models.user import User
 
 router = APIRouter()
 
-@router.post("/", response_model=UserRead, status_code=status.HTTP_201_CREATED)
+@router.post("/create_user", response_model=UserRead, status_code=status.HTTP_201_CREATED)
 def create_new_user(user_create: UserCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     """Crée un nouvel utilisateur, accessible uniquement pour les utilisateurs staff"""
     if not current_user.is_staff:
@@ -19,7 +19,7 @@ def create_new_user(user_create: UserCreate, db: Session = Depends(get_db), curr
         )
     return create_user(db=db, user_create=user_create)
 
-@router.get("/{user_id}", response_model=UserRead)
+@router.get("/user/{user_id}", response_model=UserRead)
 def read_user(user_id: UUID, db: Session = Depends(get_db)):
     """Récupère un utilisateur par son ID"""
     return get_user_by_id(db=db, user_id=user_id)
@@ -29,5 +29,4 @@ def read_users_me(current_user: User = Depends(get_current_user)):
     return {
         "id": current_user.id,
         "email": current_user.email,
-        "full_name": current_user.full_name
     }

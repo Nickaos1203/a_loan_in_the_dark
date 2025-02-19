@@ -36,6 +36,18 @@ staff_user = {
   "is_staff": True
 }
 
+basic_user = {
+  "email": "email@email.com",
+  "password": "password1234",
+  "is_staff": False
+}
+
+basic_user2 = {
+  "email": "email2@email.com",
+  "password": "password1234",
+  "is_staff": False
+}
+
 @pytest.fixture(scope="module")
 def setup_db():
     SQLModel.metadata.create_all(engine)
@@ -61,7 +73,65 @@ def test_create_staff_user(setup_db):
     token = setup_db  # Récupère le token depuis la fixture
 
     headers = {"Authorization": f"Bearer {token}"}
-    response = client.post("/users", json=staff_user, headers=headers)
+    response = client.post("/create_user", json=staff_user, headers=headers)
 
     assert response.status_code == 201
     assert response.json()["email"] == "staff@email.com"
+
+    response = client.post("/create_user", json=staff_user, headers=headers)
+    assert response.status_code == 400  # Utilisateur déja créé
+
+def test_create_basic_user(setup_db):
+    """Teste la création d'un utilisateur non staff avec un super user authentifié"""
+
+    token = setup_db  # Récupère le token depuis la fixture
+
+    headers = {"Authorization": f"Bearer {token}"}
+    response = client.post("/create_user", json=basic_user, headers=headers)
+
+    assert response.status_code == 201
+    assert response.json()["email"] == "email@email.com"
+
+    response = client.post("/create_user", json=basic_user, headers=headers)
+    assert response.status_code == 400  # Utilisateur déja créé
+
+def test_basic_user():
+  body = {
+  "email": "email@email.com",
+  "password": "password1234"
+  }
+  response = client.post("auth/login", json=body)
+  assert response.status_code == 200
+
+  token = response.json()["access_token"]
+  headers = {"Authorization": f"Bearer {token}"}
+  response = client.get("/me", headers=headers)
+  assert response.status_code == 200
+  assert response.json()["email"] == "email@email.com"
+
+  response = client.post("/create_user", headers=headers, json=staff_user)
+  assert response.status_code == 403
+
+def test_staff_user():
+  body = {
+  "email": "staff@email.com",
+  "password": "password1234"
+  }
+  response = client.post("auth/login", json=body)
+  assert response.status_code == 200
+
+  token = response.json()["access_token"]
+  headers = {"Authorization": f"Bearer {token}"}
+  response = client.get("/me", headers=headers)
+  assert response.status_code == 200
+  assert response.json()["email"] == "staff@email.com"
+
+  response = client.post("/create_user", headers=headers, json=basic_user2)
+  assert response.status_code == 201
+  assert response.json()["email"] == "email2@email.com"
+  id_user = response.json()["id"]
+
+  url = "/user/" + id_user
+  response = client.get(url, headers=headers)
+  assert response.status_code == 200
+  assert response.json()["email"] == "email2@email.com"
