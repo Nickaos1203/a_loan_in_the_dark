@@ -1,5 +1,5 @@
 """
-URL configuration for loanDjango project.
+URL configuration for loanProject project.
 
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/5.1/topics/http/urls/
@@ -19,9 +19,5 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('user/',include('UserApp.urls')),
-    path('chat/',include('chatApp.urls')),
-    #path('news/',include('newsApp.urls')),
-    #path('loan/',include('loanRequest.urls')),
-
+    path('user/', include('userApp.urls')),
 ]
