@@ -172,3 +172,4 @@ cython_debug/
 .pypirc
 
 migrations
+test.db

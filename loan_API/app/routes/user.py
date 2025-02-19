@@ -10,22 +10,60 @@ from app.models.user import User
 router = APIRouter()
 
 @router.post("/create_user", response_model=UserRead, status_code=status.HTTP_201_CREATED)
-def create_new_user(user_create: UserCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    """Crée un nouvel utilisateur, accessible uniquement pour les utilisateurs staff"""
+def create_new_user(
+    user_create: UserCreate, 
+    db: Session = Depends(get_db), 
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Creates a new user. Only staff users can access this route.
+
+    Args:
+        user_create (UserCreate): The data of the user to be created.
+        db (Session): The database session.
+        current_user (User): The currently authenticated user.
+
+    Returns:
+        UserRead: The created user information.
+
+    Raises:
+        HTTPException: If the current user is not a staff member.
+    """
     if not current_user.is_staff:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Accès interdit. Vous devez être un utilisateur staff.",
+            detail="Access denied. You must be a staff user.",
         )
     return create_user(db=db, user_create=user_create)
 
 @router.get("/user/{user_id}", response_model=UserRead)
 def read_user(user_id: UUID, db: Session = Depends(get_db)):
-    """Récupère un utilisateur par son ID"""
+    """
+    Retrieves a user by their ID.
+
+    Args:
+        user_id (UUID): The ID of the user.
+        db (Session): The database session.
+
+    Returns:
+        UserRead: The retrieved user information.
+    
+    Raises:
+        HTTPException: If the user is not found.
+    """
     return get_user_by_id(db=db, user_id=user_id)
 
 @router.get("/me")
 def read_users_me(current_user: User = Depends(get_current_user)):
+    """
+    Returns the currently authenticated user's basic details.
+
+    Args:
+        current_user (User): The authenticated user.
+
+    Returns:
+        dict: The user's ID and email.
+    """
     return {
         "id": current_user.id,
         "email": current_user.email,

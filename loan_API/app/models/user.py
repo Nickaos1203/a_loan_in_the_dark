@@ -3,8 +3,20 @@ from typing import Optional
 from uuid import uuid4, UUID
 import bcrypt
 
-
 class User(SQLModel, table=True):
+    """
+    Represents a user in the system.
+
+    Attributes:
+        id (UUID): Unique identifier for the user, generated automatically.
+        email (str): User's email address, must be unique.
+        hashed_password (str): Hashed version of the user's password.
+        is_staff (bool): Indicates if the user has administrative privileges.
+        is_active (bool): Defines if the user's account is currently active.
+        first_connection (bool): Specifies if the user is logging in for the first time.
+        profile_picture (Optional[str]): URL or path to the user's profile picture.
+    """
+    
     id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
     email: str = Field(unique=True, index=True, nullable=False)
     hashed_password: str = Field(nullable=False)
@@ -14,11 +26,28 @@ class User(SQLModel, table=True):
     profile_picture: Optional[str] = Field(default=None)
 
     def verify_password(self, password: str) -> bool:
-        """Vérifie si le mot de passe fourni correspond au hash stocké"""
+        """
+        Verifies if the provided password matches the stored hashed password.
+
+        Args:
+            password (str): The plaintext password to verify.
+
+        Returns:
+            bool: True if the password is correct, False otherwise.
+        """
         return bcrypt.checkpw(password.encode(), self.hashed_password.encode())
 
     @staticmethod
     def hash_password(password: str) -> str:
-        salt = bcrypt.gensalt()
-        hashed = bcrypt.hashpw(password.encode(), salt)
-        return hashed.decode()
+        """
+        Hashes a given password using bcrypt.
+
+        Args:
+            password (str): The plaintext password to hash.
+
+        Returns:
+            str: The hashed password as a string.
+        """
+        salt = bcrypt.gensalt()  # Generate a salt for hashing
+        hashed = bcrypt.hashpw(password.encode(), salt)  # Hash the password
+        return hashed.decode()  # Convert bytes to string

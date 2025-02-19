@@ -5,31 +5,46 @@ from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 from uuid import UUID
 
-
 def create_user(db: Session, user_create: UserCreate) -> UserRead:
-    """Crée un utilisateur avec un mot de passe hashé et le sauvegarde dans la base de données"""
-    # Vérifie si l'email existe déjà
+    """
+    Creates a new user with a hashed password and saves them to the database.
+
+    Args:
+        db (Session): The database session.
+        user_create (UserCreate): The data for the new user.
+
+    Returns:
+        UserRead: The created user without the password.
+    
+    Raises:
+        HTTPException: If the email is already used.
+    """
+    # Check if the email is already taken
     db_user = db.query(User).filter(User.email == user_create.email).first()
     if db_user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email déjà utilisé",
+            detail="Email already in use",
         )
     
-    # Crée un nouvel utilisateur
+    # Hash the user's password
     hashed_password = User.hash_password(user_create.password)
+    
+    # Create a new user instance
     db_user = User(
         email=user_create.email,
         hashed_password=hashed_password,
         is_staff=user_create.is_staff,
         is_active=True,
-        first_connection=True,  # Par défaut, l'utilisateur ne s'est pas encore co
+        first_connection=True,  # Default: user has not logged in yet
     )
+    
+    # Save user to the database
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
     
-    # Retourne l'utilisateur créé (sans le mot de passe)
+    # Return the created user without the password
     return UserRead(
         id=db_user.id,
         email=db_user.email,
@@ -40,12 +55,24 @@ def create_user(db: Session, user_create: UserCreate) -> UserRead:
     )
 
 def get_user_by_id(db: Session, user_id: UUID) -> UserRead:
-    """Récupère un utilisateur par son ID"""
+    """
+    Retrieves a user by their unique ID.
+
+    Args:
+        db (Session): The database session.
+        user_id (UUID): The ID of the user.
+
+    Returns:
+        UserRead: The user information.
+    
+    Raises:
+        HTTPException: If the user is not found.
+    """
     db_user = db.query(User).filter(User.id == user_id).first()
     if db_user is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Utilisateur non trouvé",
+            detail="User not found",
         )
     
     return UserRead(

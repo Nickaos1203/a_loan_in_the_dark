@@ -8,12 +8,32 @@ from app.models.user import User
 router = APIRouter()
 
 @router.post("/login")
-def login(user: UserConnection,db: Session = Depends(get_db)):
+def login(user: UserConnection, db: Session = Depends(get_db)):
+    """
+    Authenticates a user and returns an access token.
+
+    Args:
+        user (UserConnection): The user's login credentials (email and password).
+        db (Session): The database session.
+
+    Returns:
+        dict: A dictionary containing the access token and token type.
+
+    Raises:
+        HTTPException: If the user is not registered or the password is incorrect.
+    """
+    # Find user by email
     db_user = db.query(User).filter(User.email == user.email).first()
+    
+    # If the user does not exist
     if db_user is None:
-        raise HTTPException(status_code=401, detail="Cet utilisateur n'est pas enregistré")
+        raise HTTPException(status_code=401, detail="This user is not registered")
+    
+    # If the password is incorrect
     elif not db_user.verify_password(user.password):  
-        raise HTTPException(status_code=401, detail="mauvais mdp")
-    else:
-        token = create_access_token({"sub": user.email})
-        return {"access_token": token, "token_type": "bearer"}
+        raise HTTPException(status_code=401, detail="Incorrect password")
+    
+    # Generate an access token
+    token = create_access_token({"sub": user.email})
+    
+    return {"access_token": token, "token_type": "bearer"}
