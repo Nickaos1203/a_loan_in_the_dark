@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from app.routes import auth, user
+from app.routes import auth, user, loan
 from app.database import engine
 from sqlmodel import SQLModel
 
@@ -14,4 +14,4 @@ tags_metadata = [
 
 app.include_router(auth.router, prefix="/auth", tags=["Auth"])
 app.include_router(user.router, prefix="", tags=["Users"])
-# app.include_router(loans.router, prefix="/loans", tags=["Loans"])
+app.include_router(loan.router, prefix="/loans", tags=["Loans"])
