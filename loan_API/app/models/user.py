@@ -1,5 +1,5 @@
 from sqlmodel import SQLModel, Field, Relationship
-from typing import Optional
+from typing import Optional, List
 from uuid import uuid4, UUID
 import bcrypt
 from app.models.loan import Loan
@@ -25,7 +25,7 @@ class User(SQLModel, table=True):
     is_active: bool = Field(default=False)
     first_connection: bool = Field(default=True)
     profile_picture: Optional[str] = Field(default=None)
-    loan: Optional["Loan"] = Relationship(back_populates="user", uselist=False)
+    loans: List["Loan"] = Relationship(back_populates="user")
 
     def verify_password(self, password: str) -> bool:
         """

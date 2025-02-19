@@ -32,7 +32,8 @@ def create_loan(db: Session, loan_create: LoanCreate) -> None:
         urban_rural=loan_create.urban_rural,
         term = loan_create.term,
         no_emp= loan_create.no_emp,
-        gr_appv=loan_create.gr_appv
+        gr_appv=loan_create.gr_appv,
+        retained_job=loan_create.retained_job
     )
 
     db_loan.make_prediction()

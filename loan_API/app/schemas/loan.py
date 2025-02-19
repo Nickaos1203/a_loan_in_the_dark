@@ -1,19 +1,20 @@
 from pydantic import BaseModel,  model_validator, EmailStr
 from uuid import UUID
 from typing import Optional
-from models.loan import StateEnum, NAICSEnum, YesNoEnum
+from app.models.loan import StateEnum, NAICSEnum, YesNoEnum
 
 class LoanCreate(BaseModel):
     user_email: EmailStr
 
-    state: list[StateEnum]
+    state: StateEnum
     bank: str
-    naics: list[NAICSEnum]
-    rev_line_cr: list[YesNoEnum]
-    low_doc: list[YesNoEnum]
+    naics: NAICSEnum
+    rev_line_cr: YesNoEnum
+    low_doc: YesNoEnum
     
     new_exist: Optional[int]
     create_job: Optional[int]
+    retained_job: Optional[int]
     has_franchise: Optional[int]
     recession: Optional[int]
     urban_rural: Optional[int]
@@ -31,9 +32,9 @@ class LoanCreate(BaseModel):
                 raise ValueError(f"{field} must be either 0, 1, or null.")
         
         # Validation des valeurs numériques positives
-        for field in ['term', 'no_emp', 'gr_appv']:
+        for field in ['term', 'no_emp', 'gr_appv', 'retained_job', 'create_job']:
             val = values.get(field)
-            if val <= 0:
+            if val < 0:
                 raise ValueError(f"{field} must be a positive number.")
         
         return values

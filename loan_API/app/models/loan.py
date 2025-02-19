@@ -2,6 +2,7 @@ from sqlmodel import SQLModel, Field, Relationship
 from uuid import uuid4, UUID
 from typing import Optional, List, Dict
 from enum import Enum
+from sqlalchemy import JSON, Column
 
 import cloudpickle
 import pandas as pd
@@ -112,7 +113,7 @@ class YesNoEnum(str, Enum):
 class Loan(SQLModel, table=True):
     id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
     user_id: UUID = Field(foreign_key="user.id")
-    user: Optional["User"] = Relationship(back_populates="loan", sa_relationship_kwargs={"uselist": False})
+    user: Optional["User"] = Relationship(back_populates="loans")
 
     state: StateEnum = Field(nullable=False)
     bank: str = Field(nullable=False, index=True)  # Should be validated against a predefined list
@@ -125,6 +126,7 @@ class Loan(SQLModel, table=True):
     has_franchise: Optional[int] = Field(default=None)
     recession: Optional[int] = Field(default=None)
     urban_rural: Optional[int] = Field(default=None)
+    retained_job: Optional[int] = Field(default=None)
 
     term: int = Field(nullable=False)
     no_emp: int = Field(nullable=False)
@@ -134,7 +136,7 @@ class Loan(SQLModel, table=True):
     prediction: Optional[int] = Field(default=None)  # 0 or 1
     proba_yes: Optional[float] = Field(default=None)  # Between 0 and 1
     proba_no: Optional[float] = Field(default=None)  # Between 0 and 1
-    shap_values: Optional[List[float]] = Field(default=None)  # List of float values
+    shap_values: Optional[List[float]] = Field(default=None, sa_column=Column(JSON))
 
     def get_data(self) -> Dict:
         """
@@ -143,29 +145,34 @@ class Loan(SQLModel, table=True):
         Returns:
             dict: A dictionary containing all loan attributes for make a prediction.
         """
+        print("type : ", type(self.rev_line_cr.value))
         return {
-            "state": self.state,
-            "bank": self.bank,
-            "naics": self.naics,
-            "rev_line_cr": self.rev_line_cr,
-            "low_doc": self.low_doc,
-            "new_exist": self.new_exist,
-            "create_job": self.create_job,
-            "has_franchise": self.has_franchise,
-            "recession": self.recession,
-            "urban_rural": self.urban_rural,
-            "term": self.term,
-            "no_emp": self.no_emp,
-            "gr_appv": self.gr_appv,
+            "State": self.state.value,
+            "Bank": self.bank,
+            "NAICS": self.naics.value,
+            "Term": self.term,
+            "NoEmp": self.no_emp,
+            "NewExist": self.new_exist,
+            "CreateJob": self.create_job,
+            "RetainedJob": self.retained_job,
+            "UrbanRural": self.urban_rural,
+            "RevLineCr": str(self.rev_line_cr.value),
+            "LowDoc": str(self.low_doc.value),
+            "GrAppv": self.gr_appv,
+            "Recession": self.recession,
+            "HasFranchise": self.has_franchise
         }
     
     def make_prediction(self):
-        with open('models/cat_boost_model.pkl', "rb") as f:
+        with open('static/cat_boost_model.pkl', "rb") as f:
             model = cloudpickle.load(f)
         df = pd.DataFrame([self.get_data()])
+        print(df)
+        print(df.dtypes)
         self.prediction = model.predict(df)[0]
         proba = model.predict_proba(df)[0]
         self.proba_no = proba[0]
         self.proba_yes = proba[1]
         explainer = shap.TreeExplainer(model)
-        self.shap_values = explainer.shap_values(df.iloc[[0]])[0]
+        print("youpiiii !")
+        # self.shap_values = explainer.shap_values(df.iloc[[0]])[0]
