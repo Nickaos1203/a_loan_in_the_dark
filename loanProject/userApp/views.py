@@ -29,3 +29,6 @@ def user_login(request):
 
 def dashboard(request):
       return render(request, 'userApp/dashboard.html')
+
+
+#def pour supprimer un user en tant que conseiller
