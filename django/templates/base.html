@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Bank App{% endblock %}</title>
+    <link href="https://cdn.tailwindcss.com" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+    <nav class="bg-blue-600 text-white p-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <a href="{% url 'dashboard' %}" class="text-xl font-bold">BankApp</a>
+            {% if request.session.token %}
+                <div class="space-x-4">
+                    <a href="{% url 'dashboard' %}">Dashboard</a>
+                    {% if request.session.user_role == 'CONSEILLER' %}
+                        <a href="#">Demandes de prêts</a>
+                    {% else %}
+                        <a href="#">Demander un prêt</a>
+                    {% endif %}
+                    <a href="{% url 'login' %}">Déconnexion</a>
+                </div>
+            {% endif %}
+        </div>
+    </nav>
+
+    <main class="container mx-auto py-8 px-4">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="mb-4 p-4 {% if message.tags == 'error' %}bg-red-100 text-red-700{% else %}bg-green-100 text-green-700{% endif %} rounded">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>
