@@ -171,11 +171,39 @@ def test_create_loan():
   body= {
         "gr_appv":50000,
         "term" : 60,
+        "user_email":"email@email.com",
+        "state" : "Il existe pas celui la"
+        }
+
+  response = client.post("loans/create_loan/", json=body)
+  assert response.status_code == 422
+
+  body= {
+        "gr_appv":50000,
+        "term" : 60,
         "user_email":"email@email.com"
         }
 
   response = client.post("loans/create_loan/", json=body)
   assert response.status_code == 201
+
+  body= {
+        "gr_appv":50000,
+        "term" : 60,
+        "user_email":"email@email.com"
+        }
+
+  response = client.post("loans/create_loan/", json=body)
+  assert response.status_code == 400
+
+  body= {
+        "gr_appv":50000,
+        "term" : 60,
+        "user_email":"emailquinexistepas@email.com"
+        }
+
+  response = client.post("loans/create_loan/", json=body)
+  assert response.status_code == 400
 
   body= {"state" : "OH",
       "bank" : "CAPITAL ONE NATL ASSOC",
