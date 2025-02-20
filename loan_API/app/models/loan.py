@@ -175,4 +175,5 @@ class Loan(SQLModel, table=True):
         self.proba_yes = proba[1]
         explainer = shap.TreeExplainer(model)
         print("youpiiii !")
-        # self.shap_values = explainer.shap_values(df.iloc[[0]])[0]
+        print(explainer.shap_values(df.iloc[[0]])[0])
+        self.shap_values = list(explainer.shap_values(df.iloc[[0]])[0])
