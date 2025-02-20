@@ -9,7 +9,7 @@ from app.schemas.user import UserCreate
 from app.database import get_db
 from sqlmodel import SQLModel
 
-TEST_DATABASE_URL = "sqlite:///test.db"
+TEST_DATABASE_URL = "sqlite:///./app/tests/test.db"
 engine = create_engine(TEST_DATABASE_URL, connect_args={"check_same_thread": False})
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
@@ -135,3 +135,32 @@ def test_staff_user():
   response = client.get(url, headers=headers)
   assert response.status_code == 200
   assert response.json()["email"] == "email2@email.com"
+
+def test_create_loan():
+  body = {
+  "email": "staff@email.com",
+  "password": "password1234"
+  }
+  response = client.post("auth/login", json=body)
+  assert response.status_code == 200    
+
+  body= {"state" : "OH",
+        "bank" : "CAPITAL ONE NATL ASSOC",
+        "naics" : "54",
+        "term" : 60,
+        "no_emp" : 13,
+        "new_exist" : 1,
+        "create_job" : 0,
+        "retained_job":3,
+        "urban_rural":1,
+        "rev_line_cr":"N",
+        "low_doc":"N",
+        "gr_appv":50000,
+        "recession":0,
+        "has_franchise":1,
+        "user_email":"email@email.com"
+        }
+  
+  body["state"] = None
+  response = client.post("loans/create_loan/", json=body)
+  assert response.status_code == 422 
