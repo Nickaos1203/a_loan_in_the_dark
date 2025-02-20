@@ -174,3 +174,4 @@ cython_debug/
 migrations
 test.db
 old_cat_boost_model.pkl
+cat_boost_model.pkl
