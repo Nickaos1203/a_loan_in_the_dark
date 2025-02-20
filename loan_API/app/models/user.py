@@ -24,6 +24,11 @@ class User(SQLModel, table=True):
     is_active: bool = Field(default=False)
     first_connection: bool = Field(default=True)
     profile_picture: Optional[str] = Field(default=None)
+    # add properties : first_name, last_name, phone_number
+    first_name: str = Field(default=None)
+    last_name: str = Field(default= None)
+    phone_number: str = Field(default=None)
+
 
     def verify_password(self, password: str) -> bool:
         """
