@@ -1,5 +1,5 @@
 from app.models.user import User
-from app.models.loan import Loan
+from app.models.loan import Loan, StatusEnum
 from app.schemas.loan import LoanCreate, LoanRead
 from app.database import get_db
 from sqlalchemy.orm import Session
@@ -25,6 +25,7 @@ def create_loan(db: Session, loan_create: LoanCreate) -> None:
     db_loan = Loan(
         user_id = user.id,
         user = user,
+        status = StatusEnum.STATUS_TO_TREAT,
         state = loan_create.state,
         bank = loan_create.bank,
         naics = loan_create.naics,
@@ -53,5 +54,6 @@ def create_loan(db: Session, loan_create: LoanCreate) -> None:
         prediction = db_loan.prediction,
         proba_yes = db_loan.proba_yes,
         proba_no = db_loan.proba_no,
-        shap_values = db_loan.shap_values
+        shap_values = db_loan.shap_values,
+        status=db_loan.status
     )

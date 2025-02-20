@@ -255,3 +255,4 @@ def test_create_loan():
         0.010467730033739573,
         0.2271135220060646
     ]
+  assert response.json()["status"] == "en attente"

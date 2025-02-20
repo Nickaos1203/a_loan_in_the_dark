@@ -24,6 +24,11 @@ ex_data = {"State" : "OH",
         "HasFranchise":1
         }
 
+class StatusEnum(str, Enum):
+    STATUS_REJECT = "refusé"
+    STATUS_ACCEPT = "accepté"
+    STATUS_TO_TREAT = "en attente"
+
 class StateEnum(str, Enum):
     MN = "MN"
     UT = "UT"
@@ -129,6 +134,7 @@ class Loan(SQLModel, table=True):
     id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
     user_id: UUID = Field(foreign_key="user.id")
     user: Optional["User"] = Relationship(back_populates="loans")
+    status: StatusEnum = Field(nullable=False, default=StatusEnum.STATUS_TO_TREAT)
 
     state: Optional[StateEnum] = Field(default=None)
     bank: Optional[BankEnum] = Field(default=None)  # Should be validated against a predefined list

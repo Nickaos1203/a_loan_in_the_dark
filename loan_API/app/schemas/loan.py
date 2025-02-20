@@ -1,7 +1,7 @@
 from pydantic import BaseModel,  model_validator, EmailStr
 from uuid import UUID
 from typing import Optional, List
-from app.models.loan import StateEnum, NAICSEnum, BankEnum
+from app.models.loan import StateEnum, NAICSEnum, BankEnum, StatusEnum
 
 class LoanCreate(BaseModel):
     user_email: EmailStr
@@ -45,3 +45,4 @@ class LoanRead(BaseModel):
     proba_yes: float
     proba_no: float
     shap_values: List[float]
+    status: StatusEnum
