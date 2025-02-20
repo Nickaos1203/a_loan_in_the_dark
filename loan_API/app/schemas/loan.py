@@ -38,6 +38,3 @@ class LoanCreate(BaseModel):
                 raise ValueError(f"{field} must be a positive number.")
         
         return values
-
-    class Config:
-        orm_mode = True
