@@ -160,10 +160,22 @@ class Loan(SQLModel, table=True):
         Returns:
             dict: A dictionary containing all loan attributes for make a prediction.
         """
+        if not self.bank:
+            bank = "missing"
+        else:
+            bank = self.bank.value
+        if not self.state:
+            state = "missing"
+        else:
+            state = self.bank.value
+        if not self.naics:
+            naics = "missing"
+        else:
+            naics = self.bank.value
         return {
-            "State": self.state.value,
-            "Bank": self.bank.value,
-            "NAICS": self.naics.value,
+            "State": state,
+            "Bank": bank,
+            "NAICS": naics,
             "Term": self.term,
             "NoEmp": self.no_emp,
             "NewExist": self.new_exist,
@@ -183,7 +195,7 @@ class Loan(SQLModel, table=True):
         df = pd.DataFrame([self.get_data()])
         print(df)
         print(df.dtypes)
-        self.prediction = model.predict(df)[0]
+        self.prediction = int(model.predict(df)[0])
         proba = model.predict_proba(df)[0]
         self.proba_no = proba[0]
         self.proba_yes = proba[1]

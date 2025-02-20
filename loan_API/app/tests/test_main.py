@@ -146,12 +146,56 @@ def test_create_loan():
 
   body= {
         "gr_appv":50000,
+        "term" : 60
+        }
+
+  response = client.post("loans/create_loan/", json=body)
+  assert response.status_code == 422
+
+  body= {
+        "gr_appv":50000,
+        "user_email":"email@email.com"
+        }
+
+  response = client.post("loans/create_loan/", json=body)
+  assert response.status_code == 422
+
+  body= {
         "term" : 60,
         "user_email":"email@email.com"
         }
 
   response = client.post("loans/create_loan/", json=body)
-  assert response.status_code == 200
+  assert response.status_code == 422
+
+  body= {
+        "gr_appv":50000,
+        "term" : 60,
+        "user_email":"email@email.com"
+        }
+
+  response = client.post("loans/create_loan/", json=body)
+  assert response.status_code == 201
+
+  body= {"state" : "OH",
+      "bank" : "CAPITAL ONE NATL ASSOC",
+      "naics" : "54",
+      "term" : -60,
+      "no_emp" : 13,
+      "new_exist" : 1,
+      "create_job" : 0,
+      "retained_job":3,
+      "urban_rural":1,
+      "rev_line_cr":0,
+      "low_doc":1,
+      "gr_appv":50000,
+      "recession":0,
+      "has_franchise":1,
+      "user_email":"email2@email.com"
+      }
+
+  response = client.post("loans/create_loan/", json=body)
+  assert response.status_code == 422
 
   body= {"state" : "OH",
       "bank" : "CAPITAL ONE NATL ASSOC",
@@ -162,10 +206,52 @@ def test_create_loan():
       "create_job" : 0,
       "retained_job":3,
       "urban_rural":1,
-      "rev_line_cr":"N",
-      "low_doc":"N",
+      "rev_line_cr":0,
+      "low_doc":4,
       "gr_appv":50000,
       "recession":0,
       "has_franchise":1,
-      "user_email":"email@email.com"
+      "user_email":"email2@email.com"
       }
+
+  response = client.post("loans/create_loan/", json=body)
+  assert response.status_code == 422
+
+  body= {"state" : "OH",
+      "bank" : "CAPITAL ONE NATL ASSOC",
+      "naics" : "54",
+      "term" : 60,
+      "no_emp" : 13,
+      "new_exist" : 1,
+      "create_job" : 0,
+      "retained_job":3,
+      "urban_rural":1,
+      "rev_line_cr":0,
+      "low_doc":1,
+      "gr_appv":50000,
+      "recession":0,
+      "has_franchise":1,
+      "user_email":"email2@email.com"
+      }
+
+  response = client.post("loans/create_loan/", json=body)
+  assert response.status_code == 201
+  assert response.json()["prediction"] == 1
+  assert response.json()["proba_yes"] == 0.6142405760773084
+  assert response.json()["proba_no"] == 0.3857594239226916
+  assert response.json()["shap_values"] == [
+        -0.8636979808905176,
+        -2.9115630083722337,
+        -1.1341421952697535,
+        1.0003376841179594,
+        -0.007969621068701402,
+        -0.17421418289267707,
+        -0.010119555048143745,
+        -0.13359488437416767,
+        -0.3858366096104393,
+        0.2966838133293809,
+        0.6249975794858669,
+        0.18662214084336362,
+        0.010467730033739573,
+        0.2271135220060646
+    ]

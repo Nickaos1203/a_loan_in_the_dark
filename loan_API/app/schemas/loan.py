@@ -1,6 +1,6 @@
 from pydantic import BaseModel,  model_validator, EmailStr
 from uuid import UUID
-from typing import Optional
+from typing import Optional, List
 from app.models.loan import StateEnum, NAICSEnum, BankEnum
 
 class LoanCreate(BaseModel):
@@ -38,3 +38,10 @@ class LoanCreate(BaseModel):
                 raise ValueError(f"{field} must be a positive number.")
         
         return values
+
+class LoanRead(BaseModel):
+    id: UUID
+    prediction: int
+    proba_yes: float
+    proba_no: float
+    shap_values: List[float]
