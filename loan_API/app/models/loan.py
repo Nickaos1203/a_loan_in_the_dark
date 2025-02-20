@@ -104,10 +104,25 @@ class NAICSEnum(str, Enum):
     NAICS_55 = "55"
     NAICS_22 = "22"
 
+from sqlmodel import SQLModel, Field, Relationship
+from enum import Enum
+from typing import Optional
+import os
 
-class YesNoEnum(str, Enum):
-    YES = "Y"
-    NO = "N"
+def read_bank_file(file_path: str):
+    with open('static/banks_name.str', 'r') as f:
+        return [line.strip() for line in f.readlines() if line.strip()]
+
+def create_bank_enum(file_path: str):
+    banks = read_bank_file(file_path)
+    return Enum('BankEnum', {bank.replace(" ", "_").upper(): bank for bank in banks})
+
+# Créer l'Enum à partir du fichier
+file_path = "banks.txt"
+BankEnum = create_bank_enum(file_path)
+
+
+
 
 
 class Loan(SQLModel, table=True):
@@ -115,21 +130,21 @@ class Loan(SQLModel, table=True):
     user_id: UUID = Field(foreign_key="user.id")
     user: Optional["User"] = Relationship(back_populates="loans")
 
-    state: StateEnum = Field(nullable=False)
-    bank: str = Field(nullable=False, index=True)  # Should be validated against a predefined list
-    naics: NAICSEnum = Field(nullable=False)
-    rev_line_cr: YesNoEnum = Field(nullable=False)
-    low_doc: YesNoEnum = Field(nullable=False)
-    
+    state: Optional[StateEnum] = Field(default=None)
+    bank: Optional[BankEnum] = Field(default=None)  # Should be validated against a predefined list
+    naics: Optional[NAICSEnum] = Field(default=None)
+
+    rev_line_cr: Optional[int] = Field(default=None)  # 0, 1, or null
+    low_doc: Optional[int] = Field(default=None)  # 0, 1, or null
     new_exist: Optional[int] = Field(default=None)  # 0, 1, or null
     create_job: Optional[int] = Field(default=None)
     has_franchise: Optional[int] = Field(default=None)
     recession: Optional[int] = Field(default=None)
     urban_rural: Optional[int] = Field(default=None)
     retained_job: Optional[int] = Field(default=None)
+    no_emp: Optional[int] = Field(default=None)
 
     term: int = Field(nullable=False)
-    no_emp: int = Field(nullable=False)
     gr_appv: float = Field(nullable=False)
 
     # Prediction Fields
@@ -145,10 +160,9 @@ class Loan(SQLModel, table=True):
         Returns:
             dict: A dictionary containing all loan attributes for make a prediction.
         """
-        print("type : ", type(self.rev_line_cr.value))
         return {
             "State": self.state.value,
-            "Bank": self.bank,
+            "Bank": self.bank.value,
             "NAICS": self.naics.value,
             "Term": self.term,
             "NoEmp": self.no_emp,
@@ -156,8 +170,8 @@ class Loan(SQLModel, table=True):
             "CreateJob": self.create_job,
             "RetainedJob": self.retained_job,
             "UrbanRural": self.urban_rural,
-            "RevLineCr": str(self.rev_line_cr.value),
-            "LowDoc": str(self.low_doc.value),
+            "RevLineCr": self.rev_line_cr,
+            "LowDoc": self.low_doc,
             "GrAppv": self.gr_appv,
             "Recession": self.recession,
             "HasFranchise": self.has_franchise
@@ -174,6 +188,4 @@ class Loan(SQLModel, table=True):
         self.proba_no = proba[0]
         self.proba_yes = proba[1]
         explainer = shap.TreeExplainer(model)
-        print("youpiiii !")
-        print(explainer.shap_values(df.iloc[[0]])[0])
         self.shap_values = list(explainer.shap_values(df.iloc[[0]])[0])

@@ -144,23 +144,28 @@ def test_create_loan():
   response = client.post("auth/login", json=body)
   assert response.status_code == 200    
 
-  body= {"state" : "OH",
-        "bank" : "CAPITAL ONE NATL ASSOC",
-        "naics" : "54",
-        "term" : 60,
-        "no_emp" : 13,
-        "new_exist" : 1,
-        "create_job" : 0,
-        "retained_job":3,
-        "urban_rural":1,
-        "rev_line_cr":"N",
-        "low_doc":"N",
+  body= {
         "gr_appv":50000,
-        "recession":0,
-        "has_franchise":1,
+        "term" : 60,
         "user_email":"email@email.com"
         }
-  
-  body["state"] = None
+
   response = client.post("loans/create_loan/", json=body)
-  assert response.status_code == 422 
+  assert response.status_code == 200
+
+  body= {"state" : "OH",
+      "bank" : "CAPITAL ONE NATL ASSOC",
+      "naics" : "54",
+      "term" : 60,
+      "no_emp" : 13,
+      "new_exist" : 1,
+      "create_job" : 0,
+      "retained_job":3,
+      "urban_rural":1,
+      "rev_line_cr":"N",
+      "low_doc":"N",
+      "gr_appv":50000,
+      "recession":0,
+      "has_franchise":1,
+      "user_email":"email@email.com"
+      }
