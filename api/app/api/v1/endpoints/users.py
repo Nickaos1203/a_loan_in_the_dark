@@ -35,6 +35,56 @@ async def read_users_me(current_user: User = Depends(get_current_user)):
         "role": current_user.role
     }
 
+
+@router.delete("/{user_id}", response_model=dict)  
+async def delete_user(
+    user_id: int,
+    current_user: User = Depends(get_current_user),
+    session: Session = Depends(get_session)
+):
+    if current_user.role != UserRole.CONSEILLER:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only advisors can delete users"
+        )
+    
+    # Trouver l'utilisateur à supprimer
+    user_to_delete = session.get(User, user_id)
+    if not user_to_delete:
+        raise HTTPException(
+            status_code=404,
+            detail="User not found"
+        )
+    
+    # Empêcher la suppression d'un conseiller
+    if user_to_delete.role == UserRole.CONSEILLER:
+        raise HTTPException(
+            status_code=400,
+            detail="Cannot delete an advisor"
+        )
+    
+    # Supprimer l'utilisateur
+    session.delete(user_to_delete)
+    session.commit()
+    
+    return {"message": f"User {user_to_delete.username} has been deleted"}
+
+
+@router.get("/list", response_model=list[UserRead])
+async def list_users(
+    current_user: User = Depends(get_current_user),
+    session: Session = Depends(get_session)
+):
+    if current_user.role != UserRole.CONSEILLER:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only advisors can list users"
+        )
+    
+    users = session.exec(select(User)).all()
+    return users
+
+
 @router.post("/", response_model=UserRead)
 async def create_user(
     user_data: UserCreate,
@@ -78,4 +128,3 @@ async def create_user(
 
 
 
-#def deleteuser
