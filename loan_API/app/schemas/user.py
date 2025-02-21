@@ -49,5 +49,5 @@ class UserRead(BaseModel):
     first_name: str
     last_name: str
     phone_number: str
-    advisor: User
+    advisor_id: UUID
 
