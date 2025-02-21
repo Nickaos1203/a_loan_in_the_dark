@@ -4,30 +4,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Bank App{% endblock %}</title>
-    <link href="https://cdn.tailwindcss.com" rel="stylesheet">
+    <style>
+        
+    </style>
 </head>
-<body class="bg-gray-100">
-    <nav class="bg-blue-600 text-white p-4">
-        <div class="container mx-auto flex justify-between items-center">
-            <a href="{% url 'dashboard' %}" class="text-xl font-bold">BankApp</a>
+<body>
+    <nav>
+        <div class="nav-container">
+            <a href="{% url 'accounts:dashboard' %}" class="nav-brand">BankApp</a>
             {% if request.session.token %}
-                <div class="space-x-4">
-                    <a href="{% url 'dashboard' %}">Dashboard</a>
+                <div class="nav-links">
+                    <a href="{% url 'accounts:dashboard' %}">Dashboard</a>
                     {% if request.session.user_role == 'CONSEILLER' %}
-                        <a href="#">Demandes de prêts</a>
+                        <a href="#">Demandes</a>  <!-- Lien temporaire -->
                     {% else %}
-                        <a href="#">Demander un prêt</a>
+                        <a href="#">Mon Compte</a>  <!-- Lien temporaire -->
                     {% endif %}
-                    <a href="{% url 'login' %}">Déconnexion</a>
+                    <a href="{% url 'accounts:logout' %}">Déconnexion</a>
                 </div>
             {% endif %}
         </div>
     </nav>
 
-    <main class="container mx-auto py-8 px-4">
+    <main class="container">
         {% if messages %}
             {% for message in messages %}
-                <div class="mb-4 p-4 {% if message.tags == 'error' %}bg-red-100 text-red-700{% else %}bg-green-100 text-green-700{% endif %} rounded">
+                <div class="message {% if message.tags == 'error' %}error{% else %}success{% endif %}">
                     {{ message }}
                 </div>
             {% endfor %}

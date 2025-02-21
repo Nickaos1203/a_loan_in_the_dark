@@ -9,47 +9,41 @@ def login_view(request):
         password = request.POST.get('password')
         
         try:
-            # Test de connexion
             response = APIClient.login(username, password)
-            print(f"Login response: {response}")
-
+            print(f"Response from API login: {response}")  # Debug log
+            
             if response and 'access_token' in response:
-                token = response['access_token']
-                request.session['token'] = token
-                
-                # Test de récupération des infos utilisateur
-                user_info = APIClient.get_user_info(token)
-                print(f"User info: {user_info}")
+                request.session['token'] = response['access_token']
+                user_info = APIClient.get_user_info(response['access_token'])
+                print(f"User info from API: {user_info}")  # Debug log
                 
                 if user_info:
                     request.session['user_role'] = user_info.get('role')
-                    return redirect('dashboard')
+                    return redirect('accounts:dashboard')
                 else:
                     messages.error(request, "Impossible de récupérer les informations utilisateur")
             else:
                 messages.error(request, 'Identifiants invalides')
         except Exception as e:
-            print(f"Exception in login_view: {str(e)}")
-            messages.error(request, f'Erreur lors de la connexion: {str(e)}')
+            print(f"Exception during login: {e}")  # Debug log
+            messages.error(request, str(e))
     
     return render(request, 'accounts/login.html')
 
-@login_required
+
 def dashboard_view(request):
-    try:
-        token = request.session.get('token')
-        if not token:
-            messages.error(request, "Session expirée")
-            return redirect('login')
-            
-        user_info = APIClient.get_user_info(token)
-        if not user_info:
-            messages.error(request, "Impossible de récupérer les informations utilisateur")
-            return redirect('login')
-            
-        template = 'accounts/advisor_dashboard.html' if user_info.get('role') == 'CONSEILLER' else 'accounts/client_dashboard.html'
-        return render(request, template, {'user': user_info})
-    except Exception as e:
-        print(f"Exception in dashboard_view: {str(e)}")
-        messages.error(request, f"Erreur lors du chargement du dashboard: {str(e)}")
-        return redirect('login')
+    token = request.session.get('token')
+    if not token:
+        return redirect('accounts:login')
+        
+    user_info = APIClient.get_user_info(token)
+    if not user_info:
+        return redirect('accounts:login')
+        
+    template = 'accounts/advisor_dashboard.html' if user_info.get('role') == 'CONSEILLER' else 'accounts/client_dashboard.html'
+    return render(request, template, {'user': user_info})
+    
+    
+def logout_view(request):
+    request.session.flush()
+    return redirect('accounts:login')

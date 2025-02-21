@@ -1,21 +1,17 @@
 from django.shortcuts import redirect
 from django.urls import reverse
-from django.contrib import messages
 
-class APIAuthenticationMiddleware:
+class CustomAuthMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response
 
     def __call__(self, request):
-        # URLs qui ne nécessitent pas d'authentification
-        public_urls = ['/login/', '/admin/']
+        # Liste des URLs qui ne nécessitent pas d'authentification
+        public_paths = [reverse('accounts:login')]
         
-        # Vérifier si l'URL actuelle nécessite une authentification
-        if not any(request.path.startswith(url) for url in public_urls):
-            # Vérifier si un token est présent en session
-            if not request.session.get('token'):
-                messages.warning(request, 'Veuillez vous connecter')
-                return redirect('login')
-        
+        # Si l'utilisateur n'est pas connecté et essaie d'accéder à une page protégée
+        if request.path not in public_paths and not request.session.get('token'):
+            return redirect('accounts:login')
+            
         response = self.get_response(request)
         return response

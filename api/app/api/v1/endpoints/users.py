@@ -69,3 +69,7 @@ async def create_user(
     session.refresh(db_user)
     
     return db_user
+
+
+
+#def deleteuser
