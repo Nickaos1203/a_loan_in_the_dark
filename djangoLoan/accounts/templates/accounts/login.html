@@ -6,10 +6,10 @@
     <form method="post" action="{% url 'accounts:login' %}">
         {% csrf_token %}
         <div class="mb-4">
-            <label class="block text-gray-700 text-sm font-bold mb-2" for="username">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="email">
                 Nom d'utilisateur
             </label>
-            <input type="text" name="username" required
+            <input type="text" name="email" required
                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
         </div>
         <div class="mb-6">

@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from app.schemas.user import UserCreate, UserRead
+from sqlmodel import select
 from app.services.user import create_user, get_user_by_id, update_user
 from app.database import get_db
 from sqlalchemy.orm import Session
@@ -10,7 +11,7 @@ from app.models.user import User
 router = APIRouter()
 
 @router.post("/create_user", response_model=UserRead, status_code=status.HTTP_201_CREATED)
-def create_new_user(
+async def create_new_user(
     user_create: UserCreate, 
     db: Session = Depends(get_db), 
     current_user: User = Depends(get_current_user)
@@ -37,7 +38,7 @@ def create_new_user(
     return create_user(db=db, user_create=user_create)
 
 @router.get("/user/{user_id}", response_model=UserRead)
-def read_user(user_id: UUID, db: Session = Depends(get_db)):
+async def read_user(user_id: UUID, db: Session = Depends(get_db)):
     """
     Retrieves a user by their ID.
 
@@ -53,8 +54,22 @@ def read_user(user_id: UUID, db: Session = Depends(get_db)):
     """
     return get_user_by_id(db=db, user_id=user_id)
 
+@router.get("/list", response_model=list[UserRead])
+async def list_users(
+    current_user: User = Depends(get_current_user),
+    session: Session = Depends(get_db)
+    ):
+    if not current_user.is_staff:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only advisors can list users"
+        )
+    
+    users = session.exec(select(User)).all()
+    return users
+
 @router.get("/me")
-def read_users_me(current_user: User = Depends(get_current_user)):
+async def read_users_me(current_user: User = Depends(get_current_user),  db: Session = Depends(get_db)):
     """
     Returns the currently authenticated user's basic details.
 
@@ -64,13 +79,10 @@ def read_users_me(current_user: User = Depends(get_current_user)):
     Returns:
         dict: The user's ID and email.
     """
-    return {
-        "id": current_user.id,
-        "email": current_user.email,
-    }
+    return get_user_by_id(db=db, user_id=current_user.id)
 
 @router.put("/me/edit")
-def update_user_me(updated_user: User = Depends(get_current_user)):
+async def update_user_me(updated_user: User = Depends(get_current_user)):
     """
     Update details about the current user.
     Args:
@@ -79,7 +91,7 @@ def update_user_me(updated_user: User = Depends(get_current_user)):
     pass
 
 @router.put('/user/edit/{user_id}')
-def update_user(current_user: User, updated_user: User):
+async def update_user(current_user: User, updated_user: User):
     """
     Update details of an user attached by a staff user. 
     That route is only authorizated for the staff users
