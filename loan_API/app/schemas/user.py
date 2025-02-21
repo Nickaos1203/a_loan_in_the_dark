@@ -1,6 +1,7 @@
 from pydantic import BaseModel, EmailStr
 from uuid import UUID
 from typing import Optional
+from app.models.user import User
 
 class UserCreate(BaseModel):
     """
@@ -44,3 +45,9 @@ class UserRead(BaseModel):
     is_active: bool
     first_connection: bool
     profile_picture: Optional[str]
+    # add properties : first_name, last_name, phone_number
+    first_name: str
+    last_name: str
+    phone_number: str
+    advisor: User
+
