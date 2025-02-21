@@ -2,6 +2,7 @@ from sqlmodel import SQLModel, Field, Relationship
 from typing import Optional, List
 from uuid import uuid4, UUID
 import bcrypt
+from app.models.loan import Loan
 
 class User(SQLModel, table=True):
     """
@@ -24,13 +25,14 @@ class User(SQLModel, table=True):
     is_active: bool = Field(default=False)
     first_connection: bool = Field(default=True)
     profile_picture: Optional[str] = Field(default=None)
-    first_name: str = Field(default=None)
-    last_name: str = Field(default= None)
-    phone_number: str = Field(default=None)
+    loans: List["Loan"] = Relationship(back_populates="user")
+    first_name: Optional[str] = Field(default=None)
+    last_name: Optional[str] = Field(default= None)
+    phone_number: Optional[str] = Field(default=None)
 
     # relation one-to-many. Un conseiller peut avoir plusieur user à conseiller 
     advisor_id: Optional[UUID] = Field(default=None, foreign_key="user.id")
-    advisor: Optional["User"] = Relationship(back_populates="users")
+    advisor: Optional["User"] = Relationship(back_populates="users", sa_relationship_kwargs={"remote_side": "User.id"})
 
     # liste des users qui sont rattachés au conseiller
     users: List["User"] = Relationship(back_populates="advisor")

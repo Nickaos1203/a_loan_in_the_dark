@@ -44,10 +44,9 @@ class UserRead(BaseModel):
     is_staff: bool
     is_active: bool
     first_connection: bool
-    profile_picture: Optional[str]
-    # add properties : first_name, last_name, phone_number
-    first_name: str
-    last_name: str
-    phone_number: str
-    advisor_id: UUID
+    profile_picture: Optional[str] = None
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    phone_number: Optional[str] = None
+    advisor_id: Optional[UUID] = None
 

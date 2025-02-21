@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Bank App{% endblock %}</title>
+    <style>
+        
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="nav-container">
+            <a href="{% url 'accounts:dashboard' %}" class="nav-brand">BankApp</a>
+            {% if request.session.token %}
+                <div class="nav-links">
+                    <a href="{% url 'accounts:dashboard' %}">Dashboard</a>
+                    {% if request.session.user_role == 'CONSEILLER' %}
+                        <a href="#">Demandes</a>  <!-- Lien temporaire -->
+                    {% else %}
+                        <a href="#">Mon Compte</a>  <!-- Lien temporaire -->
+                    {% endif %}
+                    <a href="{% url 'accounts:logout' %}">Déconnexion</a>
+                </div>
+            {% endif %}
+        </div>
+    </nav>
+
+    <main class="container">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="message {% if message.tags == 'error' %}error{% else %}success{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>
