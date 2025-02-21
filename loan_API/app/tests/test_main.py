@@ -48,6 +48,12 @@ basic_user2 = {
   "is_staff": False
 }
 
+basic_user3 = {
+  "email": "email3@email.com",
+  "password": "password1234",
+  "is_staff": False
+}
+
 @pytest.fixture(scope="module")
 def setup_db():
     SQLModel.metadata.create_all(engine)
@@ -144,6 +150,13 @@ def test_create_loan():
   response = client.post("auth/login", json=body)
   assert response.status_code == 200    
 
+  token = response.json()["access_token"]
+  headers = {"Authorization": f"Bearer {token}"}
+  response = client.post("/create_user", headers=headers, json=basic_user3)
+  assert response.status_code == 201
+  assert response.json()["email"] == "email3@email.com"
+  id_user = response.json()["id"]
+
   body= {
         "gr_appv":50000,
         "term" : 60
@@ -219,7 +232,7 @@ def test_create_loan():
       "gr_appv":50000,
       "recession":0,
       "has_franchise":1,
-      "user_email":"email2@email.com"
+      "user_email":"email3@email.com"
       }
 
   response = client.post("loans/create_loan/", json=body)
@@ -239,7 +252,7 @@ def test_create_loan():
       "gr_appv":50000,
       "recession":0,
       "has_franchise":1,
-      "user_email":"email2@email.com"
+      "user_email":"email3@email.com"
       }
 
   response = client.post("loans/create_loan/", json=body)
@@ -259,7 +272,7 @@ def test_create_loan():
       "gr_appv":50000,
       "recession":0,
       "has_franchise":1,
-      "user_email":"email2@email.com"
+      "user_email":"email3@email.com"
       }
 
   response = client.post("loans/create_loan/", json=body)
@@ -284,3 +297,15 @@ def test_create_loan():
         0.2271135220060646
     ]
   assert response.json()["status"] == "en attente"
+
+  loan_id = str(response.json()["id"])
+  url = "loans/get_loan/" + loan_id
+  response = client.get(url)
+  assert response.status_code == 200
+  assert response.json()["proba_yes"] == 0.6142405760773084
+
+  url = "loans/get_loan_by_user/" + id_user
+  response = client.get(url)
+  assert response.status_code == 200
+  assert response.json()["proba_yes"] == 0.6142405760773084
+
