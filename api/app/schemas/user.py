@@ -11,6 +11,7 @@ class UserCreate(UserBase):
 class UserRead(UserBase):
     id: int
     is_active: bool
+    role : str
     
     class Config:
         from_attributes = True

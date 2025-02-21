@@ -27,7 +27,13 @@ def get_current_user(token: str = Depends(oauth2_scheme), session: Session = Dep
 
 @router.get("/me", response_model=UserRead)
 async def read_users_me(current_user: User = Depends(get_current_user)):
-    return current_user
+    return {
+        "username": current_user.username,
+        "email": current_user.email,
+        "id": current_user.id,
+        "is_active": current_user.is_active,
+        "role": current_user.role
+    }
 
 @router.post("/", response_model=UserRead)
 async def create_user(
