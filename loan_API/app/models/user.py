@@ -26,6 +26,18 @@ class User(SQLModel, table=True):
     first_connection: bool = Field(default=True)
     profile_picture: Optional[str] = Field(default=None)
     loans: List["Loan"] = Relationship(back_populates="user")
+    first_name: str = Field(default=None)
+    last_name: str = Field(default= None)
+    phone_number: str = Field(default=None)
+
+    # relation one-to-many. Un conseiller peut avoir plusieur user à conseiller 
+    advisor_id: Optional[UUID] = Field(default=None, foreign_key="user.id")
+    advisor: Optional["User"] = Relationship(back_populates="users")
+
+    # liste des users qui sont rattachés au conseiller
+    users: List["User"] = Relationship(back_populates="advisor")
+
+
 
     def verify_password(self, password: str) -> bool:
         """

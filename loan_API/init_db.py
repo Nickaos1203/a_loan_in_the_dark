@@ -2,6 +2,7 @@ from app.database import engine, Session
 from app.models.user import User
 from app.services.user import create_user
 from app.schemas.user import UserCreate
+import sqlmodel
 
 # Liste des utilisateurs à créer
 users_data = [

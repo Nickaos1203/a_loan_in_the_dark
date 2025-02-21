@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from app.schemas.user import UserCreate, UserRead
-from app.services.user import create_user, get_user_by_id
+from app.services.user import create_user, get_user_by_id, update_user
 from app.database import get_db
 from sqlalchemy.orm import Session
 from uuid import UUID
@@ -68,3 +68,22 @@ def read_users_me(current_user: User = Depends(get_current_user)):
         "id": current_user.id,
         "email": current_user.email,
     }
+
+@router.put("/me/edit")
+def update_user_me(updated_user: User = Depends(get_current_user)):
+    """
+    Update details about the current user.
+    Args:
+        updated_current_user (User): The authentificated user with updated details
+    """
+    pass
+
+@router.put('/user/edit/{user_id}')
+def update_user(current_user: User, updated_user: User):
+    """
+    Update details of an user attached by a staff user. 
+    That route is only authorizated for the staff users
+    Args:
+        updated_current_user (User): The authentificated user with updated details
+    """
+    pass

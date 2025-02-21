@@ -83,3 +83,29 @@ def get_user_by_id(db: Session, user_id: UUID) -> UserRead:
         profile_picture=db_user.profile_picture,
         first_connection=db_user.first_connection,
     )
+
+def update_user(db: Session, updated_user: User):
+    """
+    Update an existing user in the db.
+
+    Args:
+        db (Session): The database session.
+        updated_user (User): The user that we have to update.
+    """
+
+    # Search the existing user
+    db_user = db.query(User).filter(User.id == updated_user.id).first()
+    if db_user is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="User not found")
+
+    # Update the existing user (db_user) with new informations
+    db_user = updated_user
+
+    # Save user to the database
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+
+
