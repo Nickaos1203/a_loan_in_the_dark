@@ -46,3 +46,18 @@ class LoanRead(BaseModel):
     proba_no: float
     shap_values: List[float]
     status: StatusEnum
+    user_email: EmailStr
+    state: Optional[StateEnum] = None
+    bank: Optional[BankEnum] = None
+    naics: Optional[NAICSEnum] = None
+    rev_line_cr: Optional[int] = None
+    low_doc: Optional[int] = None
+    new_exist: Optional[int] = None
+    create_job: Optional[int] = None
+    retained_job: Optional[int] = None
+    has_franchise: Optional[int] = None
+    recession: Optional[int] = None
+    urban_rural: Optional[int] = None
+    no_emp: Optional[int] = None
+    term: int
+    gr_appv: float

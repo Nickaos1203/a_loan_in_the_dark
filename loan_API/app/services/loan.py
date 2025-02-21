@@ -49,11 +49,58 @@ def create_loan(db: Session, loan_create: LoanCreate) -> None:
     db.commit()
     db.refresh(db_loan)
 
+    return get_loan_by_id(db=db,loan_id=db_loan.id)
+
+
+def get_loan_by_id(db:Session, loan_id:UUID):
+    db_loan = db.query(Loan).filter(Loan.id == loan_id).first()
     return LoanRead(
         id = db_loan.id,
+        user_email= db_loan.user.email,
         prediction = db_loan.prediction,
         proba_yes = db_loan.proba_yes,
         proba_no = db_loan.proba_no,
         shap_values = db_loan.shap_values,
-        status=db_loan.status
+        status=db_loan.status,
+        state = db_loan.state,
+        bank = db_loan.bank,
+        naics = db_loan.naics,
+        rev_line_cr = db_loan.rev_line_cr,
+        low_doc = db_loan.low_doc,
+        new_exist = db_loan.new_exist,
+        create_job = db_loan.create_job,
+        has_franchise = db_loan.has_franchise,
+        recession = db_loan.recession,
+        urban_rural = db_loan.urban_rural,
+        term = db_loan.term,
+        no_emp = db_loan.no_emp,
+        gr_appv = db_loan.gr_appv,
+        retained_job = db_loan.retained_job
+    )
+
+def get_loan_by_user_id(db:Session, user_id:UUID):
+    db_user = db.query(User).filter(User.id == user_id).first()
+    db_loan = db_user.loans[0]
+    return LoanRead(
+        id = db_loan.id,
+        user_email= db_loan.user.email,
+        prediction = db_loan.prediction,
+        proba_yes = db_loan.proba_yes,
+        proba_no = db_loan.proba_no,
+        shap_values = db_loan.shap_values,
+        status=db_loan.status,
+        state = db_loan.state,
+        bank = db_loan.bank,
+        naics = db_loan.naics,
+        rev_line_cr = db_loan.rev_line_cr,
+        low_doc = db_loan.low_doc,
+        new_exist = db_loan.new_exist,
+        create_job = db_loan.create_job,
+        has_franchise = db_loan.has_franchise,
+        recession = db_loan.recession,
+        urban_rural = db_loan.urban_rural,
+        term = db_loan.term,
+        no_emp = db_loan.no_emp,
+        gr_appv = db_loan.gr_appv,
+        retained_job = db_loan.retained_job
     )
