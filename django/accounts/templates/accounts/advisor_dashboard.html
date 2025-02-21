@@ -42,7 +42,7 @@
 </div>
 
 {% block extra_js %}
-<script src="{% static 'static/accounts/js/advisor-dashboard.js' %}"></script>
+<script src="{% static 'accounts/js/advisor_dashboard.js' %}"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const token = '{{ request.session.token }}';
