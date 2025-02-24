@@ -1,4 +1,4 @@
-from django.views.generic import CreateView, TemplateView
+from django.views.generic import CreateView, TemplateView, DetailView
 from loans.models import Loan
 from loans.forms import LoanForm
 import requests
@@ -76,3 +76,11 @@ class LoanCreateView(CreateView):
 
 class LoanUserView(TemplateView):
     template_name = "loans/user_loan.html"
+
+from django.views.generic import DetailView
+from .models import Loan
+
+class AdvisorLoanDetailView(DetailView):
+    model = Loan
+    template_name = 'loans/advisor_loan.html'
+    context_object_name = 'loan'

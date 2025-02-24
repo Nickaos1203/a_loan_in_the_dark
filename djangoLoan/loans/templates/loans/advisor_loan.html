@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <h2 class="text-center">Résultats de la prediction :</h2>
+    
+    <table class="table table-striped">
+        <tr>
+            <th>prédiction</th>
+            <td>{{ loan.prediction }}</td>
+        </tr>
+    </table>
+
+    <h2 class="text-center">Détails du Prêt</h2>
+    
+    <table class="table table-striped">
+        <tr>
+            <th>ID du prêt</th>
+            <td>{{ loan.id }}</td>
+        </tr>
+        <tr>
+            <th>État</th>
+            <td>{{ loan.state }}</td>
+        </tr>
+        <tr>
+            <th>Banque</th>
+            <td>{{ loan.bank }}</td>
+        </tr>
+        <tr>
+            <th>NAICS</th>
+            <td>{{ loan.naics }}</td>
+        </tr>
+        <tr>
+            <th>Ligne de crédit</th>
+            <td>{% if loan.rev_line_cr == 1 %} Oui {% else %} Non {% endif %}</td>
+        </tr>
+        <tr>
+            <th>Low Doc</th>
+            <td>{% if loan.low_doc == 1 %} Oui {% else %} Non {% endif %}</td>
+        </tr>
+        <tr>
+            <th>Nouvelle entreprise</th>
+            <td>{% if loan.new_exist == 1 %} Oui {% else %} Non {% endif %}</td>
+        </tr>
+        <tr>
+            <th>A une franchise</th>
+            <td>{% if loan.has_franchise == 1 %} Oui {% else %} Non {% endif %}</td>
+        </tr>
+        <tr>
+            <th>Récession</th>
+            <td>{% if loan.recession == 1 %} Oui {% else %} Non {% endif %}</td>
+        </tr>
+        <tr>
+            <th>Zone Urbaine/Rurale</th>
+            <td>{% if loan.urban_rural == 1 %} Urbaine {% else %} Rurale {% endif %}</td>
+        </tr>
+        <tr>
+            <th>Emplois créés</th>
+            <td>{{ loan.create_job }}</td>
+        </tr>
+        <tr>
+            <th>Emplois maintenus</th>
+            <td>{{ loan.retained_job }}</td>
+        </tr>
+        <tr>
+            <th>Nombre d'employés</th>
+            <td>{{ loan.no_emp }}</td>
+        </tr>
+        <tr>
+            <th>Durée du prêt (mois)</th>
+            <td>{{ loan.term }}</td>
+        </tr>
+        <tr>
+            <th>Montant approuvé</th>
+            <td>{{ loan.gr_appv }} €</td>
+        </tr>
+    </table>
+
+</div>
+{% endblock %}
