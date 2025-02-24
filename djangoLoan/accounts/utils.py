@@ -1,23 +1,27 @@
 import requests
 from django.conf import settings
 import logging
+import json
 
 logger = logging.getLogger(__name__)
 
 class APIClient:
     @staticmethod
-    def login(username, password):
+    def login(email, password):
+        print("on est là !")
         try:
-            url = f"{settings.API_BASE_URL}/auth/token"
+            url = f"{settings.API_BASE_URL}/auth/login"
             print(f"Tentative de connexion à : {url}")
             
             data = {
-                "username": username,
+                "email": email,
                 "password": password
             }
+            print(data)
+            data_json = json.dumps(data)
             print(f"Data envoyée : {data}")
             
-            response = requests.post(url, data=data)
+            response = requests.post(url, data=data_json)
             print(f"Status code : {response.status_code}")
             print(f"Réponse : {response.text}")
             
@@ -31,7 +35,7 @@ class APIClient:
     @staticmethod
     def get_user_info(token):
         try:
-            url = f"{settings.API_BASE_URL}/users/me"
+            url = f"{settings.API_BASE_URL}/me"
             print(f"URL complète pour get_user_info : {url}")
             
             headers = {
