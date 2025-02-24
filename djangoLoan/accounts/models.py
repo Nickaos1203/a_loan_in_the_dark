@@ -18,3 +18,6 @@ class CustomUser(AbstractUser):
     class Meta:
         db_table = 'custom_user'
 
+    def __repr__(self):
+        return self.email
+
