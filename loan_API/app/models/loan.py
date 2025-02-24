@@ -196,7 +196,7 @@ class Loan(SQLModel, table=True):
         }
     
     def make_prediction(self):
-        with open('static/cat_boost_model.pkl', "rb") as f:
+        with open('static/lightGBM_model.pkl', "rb") as f:
             model = cloudpickle.load(f)
         df = pd.DataFrame([self.get_data()])
         print(df)
@@ -205,5 +205,6 @@ class Loan(SQLModel, table=True):
         proba = model.predict_proba(df)[0]
         self.proba_no = proba[0]
         self.proba_yes = proba[1]
-        explainer = shap.TreeExplainer(model)
-        self.shap_values = list(explainer.shap_values(df.iloc[[0]])[0])
+        transformed_data = model.named_steps['preprocessor'].transform(df.iloc[[0]])
+        explainer = shap.TreeExplainer(model.named_steps['model'])
+        self.shap_values = list(explainer.shap_values(transformed_data)[0])
