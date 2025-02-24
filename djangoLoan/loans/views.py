@@ -1,4 +1,4 @@
-from django.views.generic import CreateView
+from django.views.generic import CreateView, TemplateView
 from loans.models import Loan
 from loans.forms import LoanForm
 import requests
@@ -6,12 +6,14 @@ import os
 from django.conf import settings
 from django.urls import reverse_lazy
 from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
+from accounts.models import CustomUser
 
 class LoanCreateView(CreateView):
     model = Loan
     template_name = "loans/create_loan.html"
     form_class = LoanForm
-    success_url = reverse_lazy("loan_success")
+    success_url = reverse_lazy("loans:user_loan")
 
     def form_valid(self, form):
         """
@@ -19,14 +21,16 @@ class LoanCreateView(CreateView):
         1. Envoie les données du formulaire à l'API externe.
         2. Si succès, enregistre l'objet Loan en base de données.
         """
-        user = self.request.user
+        user_info = self.request.session.get('user_info')
+        user = get_object_or_404(CustomUser, id=user_info['id'])
         token = user.api_token
         headers = {
                 "Authorization": f"Bearer {token}",
                 "Accept": "application/json"
             }
-        api_url = os.getenv("API_BASE_URL", settings.API_BASE_URL) + "/create_loan"
+        api_url = os.getenv("API_BASE_URL", settings.API_BASE_URL) + "/loans/create_loan"
         django_data = form.cleaned_data
+        django_data["user_email"] = user.email
 
         try:
             response = requests.post(api_url, json=django_data, headers=headers)
@@ -69,3 +73,6 @@ class LoanCreateView(CreateView):
         if self.request.headers.get("X-Requested-With") == "XMLHttpRequest":
             return JsonResponse({"errors": form.errors}, status=400)
         return super().form_invalid(form)
+
+class LoanUserView(TemplateView):
+    template_name = "loans/user_loan.html"
