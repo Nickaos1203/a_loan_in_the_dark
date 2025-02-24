@@ -4,6 +4,7 @@ from app.services.auth import create_access_token
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models.user import User
+from app.services.auth import get_current_user
 
 router = APIRouter()
 
@@ -37,3 +38,20 @@ def login(user: UserConnection, db: Session = Depends(get_db)):
     token = create_access_token({"sub": user.email})
     
     return {"access_token": token, "token_type": "bearer"}
+
+@router.get("/verify_token")
+async def verify_token(current_user: dict = Depends(get_current_user), db: Session = Depends(get_db)):
+    """
+    Vérifie si le token est valide et retourne un statut HTTP 200 si OK.
+
+    Args:
+        current_user (dict): L'utilisateur authentifié grâce au token.
+        db (Session): Session de base de données (Dépendance FastAPI).
+
+    Returns:
+        dict: Un message de confirmation si le token est valide.
+    """
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Token invalide ou expiré")
+    
+    return {"message": "Token valide", "user_id": current_user.id}

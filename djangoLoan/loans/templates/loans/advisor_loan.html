@@ -7,7 +7,15 @@
     <table class="table table-striped">
         <tr>
             <th>prédiction</th>
-            <td>{{ loan.prediction }}</td>
+            <td>{% if loan.prediction == 1 %}
+                L'utilisateur va rembourser
+            {% else %}
+                L'utilisateur va être en défaut de paiement
+            {% endif %}</td>
+        </tr>
+        <tr>
+            <th>probabilité qu'il rembourse :</th>
+            <td>{{ loan.proba_yes }}</td>
         </tr>
     </table>
 
