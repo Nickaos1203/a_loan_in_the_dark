@@ -1,6 +1,10 @@
 from django.urls import path
 from .views import loan_application_by_user
+from loans.views import LoanCreateView, LoanUserView
+
+app_name = 'loans' 
 
 urlpatterns = [
-    path('form', loan_application_by_user, name='loan_form'),
+    path('create/', LoanCreateView.as_view(), name='loan_create'),
+    path('user_loan/', LoanUserView.as_view(), name='user_loan'),
 ]

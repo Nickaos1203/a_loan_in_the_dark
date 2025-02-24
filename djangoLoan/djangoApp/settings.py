@@ -44,7 +44,7 @@ INSTALLED_APPS = [
     'chat',
     'loans',
     'corsheaders',
-
+    'loans'
 ]
 
 MIDDLEWARE = [
