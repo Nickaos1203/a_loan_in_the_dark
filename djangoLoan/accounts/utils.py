@@ -20,8 +20,10 @@ class APIClient:
             print(data)
             data_json = json.dumps(data)
             print(f"Data envoyée : {data}")
-            
-            response = requests.post(url, data=data_json)
+            headers = {
+                "Accept": "application/json"
+            }
+            response = requests.post(url, data=data_json, headers=headers)
             print(f"Status code : {response.status_code}")
             print(f"Réponse : {response.text}")
             

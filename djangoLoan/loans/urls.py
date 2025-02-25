@@ -1,5 +1,4 @@
 from django.urls import path
-from .views import loan_application_by_user
 from loans.views import LoanCreateView, LoanUserView
 
 app_name = 'loans' 

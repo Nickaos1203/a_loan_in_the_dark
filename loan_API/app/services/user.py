@@ -26,6 +26,7 @@ def create_user(db: Session, user_create: UserCreate) -> UserRead:
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Email already in use",
         )
+    print(user_create.password)
     
     # Hash the user's password
     hashed_password = User.hash_password(user_create.password)
