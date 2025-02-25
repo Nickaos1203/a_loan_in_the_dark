@@ -15,11 +15,12 @@
             {% if request.session.token %}
                 <div class="nav-links">
                     <a href="{% url 'accounts:dashboard' %}">Dashboard</a>
-                    {% if request.session.user_role == 'CONSEILLER' %}
+                    {% if request.session.user_is_staff %}
                         <a href="#">Demandes</a>  <!-- Lien temporaire -->
                     {% else %}
                         <a href="#">Mon Compte</a>  <!-- Lien temporaire -->
                     {% endif %}
+                    <a href="{% url 'chat:chat_room' %}">Chat</a>  <!-- Nouveau lien vers le chat -->
                     <a href="{% url 'accounts:logout' %}">Déconnexion</a>
                 </div>
             {% endif %}
@@ -36,7 +37,6 @@
         {% endif %}
         {% block content %}{% endblock %}
     </main>
-
 
     {% block javascript %}{% endblock %}
 </body>

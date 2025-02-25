@@ -1,0 +1,261 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Chat général</h3>
+                </div>
+                <div class="card-body">
+                    <div id="chat-messages" class="mb-3" style="height: 400px; overflow-y: auto;">
+                        {% for message in messages %}
+                            <div class="message mb-2 {% if message.is_staff %}staff-message{% else %}user-message{% endif %}">
+                                <strong>
+                                    {{ message.user.email }} 
+                                    {% if message.is_staff %}
+                                        <span class="badge bg-primary">staff</span>
+                                    {% endif %}
+                                </strong>
+                                <span class="text-muted small">{{ message.formatted_timestamp }}</span>
+                                <div>{{ message.content }}</div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <form id="chat-form">
+                        <div class="input-group">
+                            <input type="text" id="chat-input" class="form-control" placeholder="Tapez votre message...">
+                            <button type="submit" class="btn btn-primary">Envoyer</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Utilisateurs en ligne</h3>
+                </div>
+                <div class="card-body">
+                    <ul id="online-users" class="list-group">
+                        <!-- Les utilisateurs en ligne seront ajoutés dynamiquement ici -->
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const chatMessages = document.getElementById('chat-messages');
+        const chatForm = document.getElementById('chat-form');
+        const chatInput = document.getElementById('chat-input');
+        const onlineUsers = document.getElementById('online-users');
+        
+        // Faire défiler vers le bas pour voir les messages les plus récents
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        
+        // Liste des utilisateurs en ligne
+        const onlineUsersList = new Set();
+        
+        // Fonction pour établir la connexion WebSocket
+        function connectWebSocket() {
+            const chatSocket = new WebSocket(
+                'ws://' + window.location.host + '/ws/chat/'
+            );
+            
+            chatSocket.onopen = function(e) {
+                console.log('WebSocket connection established');
+            };
+            
+            chatSocket.onmessage = function(e) {
+                const data = JSON.parse(e.data);
+                
+                if (data.type === 'message') {
+                    // Ajouter le nouveau message
+                    const message = data.message;
+                    const messageElement = document.createElement('div');
+                    messageElement.className = `message mb-2 ${message.is_staff ? 'staff-message' : 'user-message'}`;
+                    
+                    messageElement.innerHTML = `
+                        <strong>
+                            ${message.user_email} 
+                            ${message.is_staff ? '<span class="badge bg-primary">staff</span>' : ''}
+                        </strong>
+                        <span class="text-muted small">${message.timestamp}</span>
+                        <div>${message.content}</div>
+                    `;
+                    
+                    chatMessages.appendChild(messageElement);
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                }
+                else if (data.type === 'user_join') {
+                    // Ajouter l'utilisateur à la liste des utilisateurs en ligne
+                    if (!onlineUsersList.has(data.user)) {
+                        onlineUsersList.add(data.user);
+                        updateOnlineUsersList();
+                        
+                        // Afficher un message indiquant qu'un utilisateur a rejoint
+                        const joinMessage = document.createElement('div');
+                        joinMessage.className = 'text-center text-muted small my-2';
+                        joinMessage.textContent = `${data.user} a rejoint le chat`;
+                        chatMessages.appendChild(joinMessage);
+                        chatMessages.scrollTop = chatMessages.scrollHeight;
+                    }
+                }
+                else if (data.type === 'user_leave') {
+                    // Retirer l'utilisateur de la liste des utilisateurs en ligne
+                    if (onlineUsersList.has(data.user)) {
+                        onlineUsersList.delete(data.user);
+                        updateOnlineUsersList();
+                        
+                        // Afficher un message indiquant qu'un utilisateur est parti
+                        const leaveMessage = document.createElement('div');
+                        leaveMessage.className = 'text-center text-muted small my-2';
+                        leaveMessage.textContent = `${data.user} a quitté le chat`;
+                        chatMessages.appendChild(leaveMessage);
+                        chatMessages.scrollTop = chatMessages.scrollHeight;
+                    }
+                }
+            };
+            
+            chatSocket.onclose = function(e) {
+                console.error('WebSocket connection closed unexpectedly');
+                // Tentative de reconnexion après 3 secondes
+                setTimeout(function() {
+                    console.log('Attempting to reconnect WebSocket...');
+                    connectWebSocket();
+                }, 3000);
+            };
+            
+            chatSocket.onerror = function(e) {
+                console.error('WebSocket error:', e);
+            };
+            
+            return chatSocket;
+        }
+        
+        // Initialiser la connexion WebSocket
+        const chatSocket = connectWebSocket();
+        
+        // Envoyer un message
+        chatForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const message = chatInput.value.trim();
+            if (message) {
+                // Vérifier si la connexion WebSocket est ouverte
+                if (chatSocket.readyState === WebSocket.OPEN) {
+                    chatSocket.send(JSON.stringify({
+                        'message': message
+                    }));
+                } else {
+                    console.error('WebSocket not connected. Message will be sent via HTTP only.');
+                }
+                
+                // Envoyer également au serveur via HTTP pour s'assurer que le message est sauvegardé
+                fetch('/chat/api/send/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: `content=${encodeURIComponent(message)}`
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        if (response.status === 401) {
+                            // Rediriger vers la page de connexion si non authentifié
+                            window.location.href = '/accounts/login/?next=/chat/';
+                        }
+                        throw new Error('Erreur lors de l\'envoi du message');
+                    }
+                    return response.json();
+                })
+                .catch(error => {
+                    console.error('Erreur:', error);
+                });
+                
+                chatInput.value = '';
+            }
+        });
+        
+        // Mettre à jour la liste des utilisateurs en ligne
+        function updateOnlineUsersList() {
+            onlineUsers.innerHTML = '';
+            onlineUsersList.forEach(user => {
+                const userElement = document.createElement('li');
+                userElement.className = 'list-group-item';
+                userElement.textContent = user;
+                onlineUsers.appendChild(userElement);
+            });
+        }
+        
+        // Fonction pour obtenir un cookie (pour CSRF)
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        
+        // Actualiser la liste des messages périodiquement
+        function refreshMessages() {
+            fetch('/chat/api/messages/')
+                .then(response => {
+                    if (!response.ok) {
+                        if (response.status === 401) {
+                            // Rediriger vers la page de connexion si non authentifié
+                            window.location.href = '/accounts/login/?next=/chat/';
+                        }
+                        throw new Error('Erreur lors de la récupération des messages');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Actualiser uniquement si le chat n'est pas en cours d'utilisation
+                    if (document.activeElement !== chatInput) {
+                        chatMessages.innerHTML = '';
+                        
+                        data.messages.forEach(message => {
+                            const messageElement = document.createElement('div');
+                            messageElement.className = `message mb-2 ${message.is_staff ? 'staff-message' : 'user-message'}`;
+                            
+                            messageElement.innerHTML = `
+                                <strong>
+                                    ${message.user_email} 
+                                    ${message.is_staff ? '<span class="badge bg-primary">staff</span>' : ''}
+                                </strong>
+                                <span class="text-muted small">${message.timestamp}</span>
+                                <div>${message.content}</div>
+                            `;
+                            
+                            chatMessages.appendChild(messageElement);
+                        });
+                        
+                        chatMessages.scrollTop = chatMessages.scrollHeight;
+                    }
+                })
+                .catch(error => {
+                    console.error('Erreur:', error);
+                });
+        }
+        
+        // Actualiser les messages toutes les 30 secondes
+        setInterval(refreshMessages, 30000);
+    });
+</script>
+{% endblock %}
+{% endblock %}
+```

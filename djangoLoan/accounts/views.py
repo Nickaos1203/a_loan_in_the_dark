@@ -65,6 +65,7 @@ def login_view(request):
     
     return render(request, 'accounts/login.html', {'settings': settings})
 
+
 class CreateUserView(CreateView):
     model = CustomUser
     form_class = UserCreate
