@@ -38,7 +38,7 @@ class CustomLoginView(LoginView):
                 current_user.save()
 
                 # Connecte l'utilisateur à Django
-                login(self.request, current_user)  # C'est ici que tu connectes l'utilisateur à Django
+                login(self.request, current_user) 
 
                 # Sauvegarde des informations utilisateur dans la session
                 self.request.session['user_info'] = user_info
@@ -122,12 +122,13 @@ class CreateUserView(CreateView):
             }
         api_url = os.getenv("API_BASE_URL", settings.API_BASE_URL) + "/create_user"
         django_data = form.cleaned_data
-        print(f"password :{django_data}")
         try:
             response = requests.post(api_url, json=django_data, headers=headers)
+            django_data.pop('password', None)
             data = response.json()
             if response.status_code == 201:
                 form.instance.id = data.get("id")
+                form.instance.password = None
                 return super().form_valid(form)
             else:
                 return JsonResponse({"error": data}, status=response.status_code)
