@@ -23,6 +23,11 @@
         </tr>
     </table>
 
+    <div class="container">
+        <h2>Graphique des SHAP Values</h2>
+        <div id="shap-plot"></div>
+    </div>
+
     <h2 class="text-center">Détails du Prêt</h2>
     
     <table class="table table-striped">
@@ -89,4 +94,11 @@
     </table>
 
 </div>
+
+<!-- Import Plotly -->
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script>
+    var graph = {{ graph_json|safe }};
+    Plotly.newPlot("shap-plot", graph);
+</script>
 {% endblock %}

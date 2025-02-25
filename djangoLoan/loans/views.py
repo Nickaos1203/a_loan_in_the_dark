@@ -8,6 +8,9 @@ from django.urls import reverse_lazy
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from accounts.models import CustomUser
+import plotly.express as px
+import plotly.utils
+import json
 
 class LoanCreateView(CreateView):
     model = Loan
@@ -77,10 +80,34 @@ class LoanCreateView(CreateView):
 class LoanUserView(TemplateView):
     template_name = "loans/user_loan.html"
 
-from django.views.generic import DetailView
-from .models import Loan
-
 class AdvisorLoanDetailView(DetailView):
     model = Loan
     template_name = 'loans/advisor_loan.html'
     context_object_name = 'loan'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        loan = self.get_object()
+
+        # Récupération des SHAP values depuis le modèle
+        shap_values = loan.shap_values  # Assurez-vous que c'est une liste de nombres
+        
+        # Labels des caractéristiques dans le même ordre que les SHAP values
+        features = ["State", "Bank", "NAICS", "Term", "NoEmp", "NewExist", "CreateJob", "RetainedJob", 
+                    "UrbanRural", "RevLineCr", "LowDoc", "GrAppv", "Recession", "HasFranchise"]
+
+        # Création du graphique avec Plotly
+        fig = px.bar(
+            x=shap_values, 
+            y=features, 
+            orientation="h", 
+            title="Impact des caractéristiques sur la prédiction",
+            color=shap_values, 
+            color_continuous_scale="RdYlGn"
+        )
+
+        # Convertir le graphique en JSON
+        context["graph_json"] = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+        
+        return context
+
