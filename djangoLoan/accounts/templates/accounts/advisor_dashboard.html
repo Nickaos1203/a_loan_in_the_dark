@@ -7,18 +7,10 @@
     
     <section>
         <h2>Créer un nouvel utilisateur</h2>
-        <form id="createUserForm">
-            <div>
-                <label for="username">Nom d'utilisateur</label>
-                <input type="text" id="username" name="username" required>
-            </div>
-            <div>
-                <label for="email">Email</label>
-                <input type="email" id="email" name="email" required>
-            </div>
-            <div>
-                <label for="password">Mot de passe</label>
-                <input type="password" id="password" name="password" required>
+        <form method="post" id="createUserForm">
+            {% csrf_token %}
+            <div> 
+                {{form.as_p}}
             </div>
             <button type="submit">Créer l'utilisateur</button>
         </form>
@@ -36,20 +28,36 @@
                 </tr>
             </thead>
             <tbody>
+                {% if users %}
+                    {% for user in users %}
+                    <tr>
+                        <td>{{ user.username|default:"" }}</td>
+                        <td>{{ user.email }}</td>
+                        <td>{% if user.is_staff %}Staff{% else %}Client{% endif %}</td>
+                        <td>
+                            <button onclick="deleteUser('{{ user.id }}')">Supprimer</button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="4">Aucun utilisateur trouvé</td>
+                    </tr>
+                {% endif %}
             </tbody>
         </table>
     </section>
 </div>
+{% endblock %}
 
-{% block extra_js %}
-<script src="{% static 'accounts/js/advisor_dashboard.js' %}"></script>
+{% block javascript %}
+<script src="{% static 'accounts/js/advisor_dashboard.js' %}"></script> 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const token = '{{ request.session.token }}';
-        const baseUrl = 'http://localhost:8000/api/v1';
+        const baseUrl = '{{ settings.API_BASE_URL }}';
         window.userManager = new UserManager(token, baseUrl);
         userManager.init();
     });
 </script>
-{% endblock %}
 {% endblock %}

@@ -109,7 +109,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Configuration API
-API_BASE_URL = os.getenv('API_BASE_URL', 'http://localhost:8000/')
+API_BASE_URL = os.getenv('API_BASE_URL', 'http://localhost:8000')
 
 
 # Password validation

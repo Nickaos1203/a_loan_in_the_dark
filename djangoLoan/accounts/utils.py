@@ -11,17 +11,20 @@ class APIClient:
         print("on est là !")
         try:
             url = f"{settings.API_BASE_URL}/auth/login"
-            print(f"Tentative de connexion à : {url}")
-            
-            data = {
-                "email": email,
-                "password": password
+            headers = {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
             }
-            print(data)
-            data_json = json.dumps(data)
-            print(f"Data envoyée : {data}")
-            
-            response = requests.post(url, data=data_json)
+            data = {
+            "email": email,
+            "password": password
+            }
+        
+            response = requests.post(
+            url, 
+            headers=headers,
+            json=data  
+        )
             print(f"Status code : {response.status_code}")
             print(f"Réponse : {response.text}")
             
@@ -54,3 +57,50 @@ class APIClient:
         except Exception as e:
             print(f"Exception dans get_user_info : {str(e)}")
             return None
+        
+@staticmethod
+def list_users(token):
+        try:
+            url = f"{settings.API_BASE_URL}/list"
+            headers = {
+                'Authorization': f"Bearer {token}",
+                'Accept': 'application/json'
+            }
+            response = requests.get(url, headers=headers)
+            if response.ok:
+                return response.json()
+            return None
+        except Exception as e:
+            print(f"Error listing users: {str(e)}")
+            return None
+
+@staticmethod
+def create_user(token, user_data):
+        try:
+            url = f"{settings.API_BASE_URL}/create_user"
+            headers = {
+                'Authorization': f"Bearer {token}",
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            }
+            response = requests.post(url, headers=headers, json=user_data)
+            if response.ok:
+                return response.json()
+            return None
+        except Exception as e:
+            print(f"Error creating user: {str(e)}")
+            return None
+
+@staticmethod
+def delete_user(token, user_id):
+        try:
+            url = f"{settings.API_BASE_URL}/user/{user_id}"
+            headers = {
+                'Authorization': f"Bearer {token}",
+                'Accept': 'application/json'
+            }
+            response = requests.delete(url, headers=headers)
+            return response.ok
+        except Exception as e:
+            print(f"Error deleting user: {str(e)}")
+            return False
