@@ -11,7 +11,6 @@ class CustomUser(AbstractUser):
     profile_picture = models.FilePathField(null=True)
     phone_number = models.CharField(max_length=55, null=True, blank=True)
     advisor =  models.ManyToManyField("self", symmetrical=False)
-    password = models.CharField(max_length=128, null=True, blank=True, default="default_password_kiserari1")
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']

@@ -16,10 +16,9 @@ def init_django_db():
             new_user = CustomUser(
                 id=user["id"],  # Assurez-vous que l'ID est unique ou laissé vide pour qu'il soit généré automatiquement
                 email=user["email"],
-                is_staff=user["is_staff"],
-                password = "default_password_kiserari1"
+                is_staff=user["is_staff"]
             )
-            # new_user.set_password("password1234")  # Utiliser set_password pour hacher le mot de passe
+            new_user.set_password("password1234")  # Utiliser set_password pour hacher le mot de passe
             new_user.save()
             print(f"Utilisateur {user['email']} créé avec succès.")
         else:

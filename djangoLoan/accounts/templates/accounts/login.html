@@ -1,28 +1,27 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="max-w-md mx-auto bg-white p-8 rounded-lg shadow-md">
-    <h2 class="text-2xl font-bold mb-6">Connexion</h2>
-    <form method="post" action="{% url 'accounts:login' %}">
+<div class="container">
+    <h2>Connexion</h2>
+    <form method="post">
         {% csrf_token %}
-        <div class="mb-4">
-            <label class="block text-gray-700 text-sm font-bold mb-2" for="email">
-                Nom d'utilisateur
-            </label>
-            <input type="text" name="email" required
-                   class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+        <div class="form-group">
+            <label for="username">Email</label>
+            {{ form.username }}
         </div>
-        <div class="mb-6">
-            <label class="block text-gray-700 text-sm font-bold mb-2" for="password">
-                Mot de passe
-            </label>
-            <input type="password" name="password" required
-                   class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline">
+        <div class="form-group">
+            <label for="password">Mot de passe</label>
+            {{ form.password }}
         </div>
-        <button type="submit"
-                class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full">
-            Se connecter
-        </button>
+        <button type="submit" class="btn btn-primary">Se connecter</button>
     </form>
+    
+    {% if messages %}
+        <div class="alert alert-danger mt-3">
+            {% for message in messages %}
+                <p>{{ message }}</p>
+            {% endfor %}
+        </div>
+    {% endif %}
 </div>
 {% endblock %}
