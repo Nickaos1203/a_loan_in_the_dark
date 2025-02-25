@@ -82,20 +82,16 @@ async def read_users_me(current_user: User = Depends(get_current_user),  db: Ses
     return get_user_by_id(db=db, user_id=current_user.id)
 
 @router.put("/me/edit")
-async def update_user_me(updated_user: User = Depends(get_current_user)):
+def update_user_me(
+    user_update: UserRead, 
+    db: Session = Depends(get_db), 
+    current_user: User = Depends(get_current_user)
+):
     """
     Update details about the current user.
     Args:
-        updated_current_user (User): The authentificated user with updated details
+        user_update (User): The authentificated user with updated details
+        db (Session): The database session.
+        current_user (User): The currently authenticated user.
     """
-    pass
-
-@router.put('/user/edit/{user_id}')
-async def update_user(current_user: User, updated_user: User):
-    """
-    Update details of an user attached by a staff user. 
-    That route is only authorizated for the staff users
-    Args:
-        updated_current_user (User): The authentificated user with updated details
-    """
-    pass
+    update_user(db,user_update)

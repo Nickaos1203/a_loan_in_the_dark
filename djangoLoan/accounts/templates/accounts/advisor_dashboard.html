@@ -2,6 +2,7 @@
 {% load static %}
 
 {% block content %}
+{% comment "" %}
 <p>utilisateur : {{request.user}}</p>
 <div class="max-w-md mx-auto bg-white p-8 rounded-lg shadow-md">
     <h2 class="text-2xl font-bold mb-6">Demander une garantie de pret</h2>
@@ -14,5 +15,46 @@
         <button type="submit" class="btn text-lg">Envoyer</button>
     </form>
 </div>
+{% endcomment %}
+
+<form method="post">
+    <div class="mb-3">
+        <h1>Créer un compte client</h1>
+    </div>
+
+    {% csrf_token %}
+
+    <div class="mb-3">
+      <label for="email" class="form-label">Email</label>
+      <input type="email" class="form-control" id="email">
+      <div id="email" class="form-text">Saisissez une adresse mail valide</div>
+    </div>
+
+    <div class="mb-3">
+        <label for="username" class="form-label">Username</label>
+        <input type="text" class="form-control" id="username">
+        <div id="username" class="form-text">Saisissez une pseudonyme</div>
+    </div>
+
+    <div class="mb-3">
+        <label for="last_name" class="form-label">Nom</label>
+        <input type="text" class="form-control" id="last_name">
+        <div id="last_name" class="form-text">Saisissez un nom</div>
+    </div>
+
+    <div class="mb-3">
+        <label for="first_name" class="form-label">Prénom</label>
+        <input type="text" class="form-control" id="first_name">
+        <div id="first_name" class="form-text">Saisissez un prénom</div>
+    </div>
+
+    <div class="mb-3">
+        <label for="phone_number" class="form-label">Numéro de téléphone</label>
+        <input type="text" class="form-control" id="phone_number">
+        <div id="phone_number" class="form-text">Saisissez un numéro de téléphone</div>
+    </div>
+
+    <button type="submit" class="btn btn-dark"><b>Créer le compte</b></button>
+</form>
 
 {% endblock %}
