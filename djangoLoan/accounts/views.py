@@ -11,6 +11,7 @@ import os
 import requests
 from django.http import JsonResponse
 from django.urls import reverse_lazy
+import json
 
 
 def login_view(request):
@@ -25,16 +26,34 @@ def login_view(request):
             if response and 'access_token' in response:
                 token = response['access_token']
                 request.session['token'] = token
-                user_info = APIClient.get_user_info(response['access_token'])
-                current_user = get_object_or_404(CustomUser, id=user_info['id'])
-                print(f"Le gros truc :{current_user}")
-                current_user.api_token = token
-                current_user.save()
+                
+                # Récupérer les infos utilisateur
+                user_info = APIClient.get_user_info(token)
                 print(f"User info from API: {user_info}")  # Debug log
                 
                 if user_info:
-                    request.session['user_info'] = user_info  # Stocke toutes les infos utilisateur
-                    request.session['user_is_staff'] = user_info.get('is_staff')  # Stocke spécifiquement le rôle
+                    # S'assurer que l'utilisateur existe dans la base locale
+                    try:
+                        user, created = CustomUser.objects.get_or_create(
+                            id=user_info['id'],
+                            defaults={
+                                'email': user_info['email'],
+                                'api_token': token,
+                                'is_staff': user_info.get('is_staff', False)
+                            }
+                        )
+                        
+                        if not created:
+                            # Mettre à jour le token si l'utilisateur existe déjà
+                            user.api_token = token
+                            user.save()
+                    except Exception as e:
+                        print(f"Erreur lors de la synchronisation de l'utilisateur: {e}")
+                    
+                    # Stocker les infos dans la session
+                    request.session['user_info'] = user_info
+                    request.session['user_is_staff'] = user_info.get('is_staff', False)
+                    
                     return redirect('accounts:dashboard')
                 else:
                     messages.error(request, "Impossible de récupérer les informations utilisateur")
@@ -130,3 +149,32 @@ def dashboard_view(request):
         'user': user_info,
         'settings': settings
     })
+
+# Dans accounts/views.py
+@login_required
+def create_user_view(request):
+    if request.method == 'POST':
+        token = request.session.get('token')
+        if not token:
+            return JsonResponse({"error": "Non autorisé"}, status=401)
+        
+        data = json.loads(request.body)
+        
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Accept": "application/json",
+            "Content-Type": "application/json"
+        }
+        
+        api_url = f"{settings.API_BASE_URL}/create_user"
+        
+        try:
+            response = requests.post(api_url, json=data, headers=headers)
+            if response.ok:
+                return JsonResponse(response.json())
+            else:
+                return JsonResponse({"error": response.json().get('detail', 'Erreur inconnue')}, status=response.status_code)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
+    
+    return JsonResponse({"error": "Méthode non autorisée"}, status=405)
