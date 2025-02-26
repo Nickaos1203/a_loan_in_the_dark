@@ -28,7 +28,7 @@
     </nav>
 
     <main class="container">
-        {% if messages %}
+        {% if messages and not 'chat' in request.path %}
             {% for message in messages %}
                 <div class="message {% if message.tags == 'error' %}error{% else %}success{% endif %}">
                     {{ message }}
