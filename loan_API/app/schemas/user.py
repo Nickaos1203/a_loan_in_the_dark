@@ -15,6 +15,11 @@ class UserCreate(BaseModel):
     email: EmailStr
     password: str
     is_staff: bool
+    profile_picture: Optional[str] = None
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    phone_number: Optional[str] = None
+    advisor_id: Optional[UUID] = None
 
 class UserConnection(BaseModel):
     """

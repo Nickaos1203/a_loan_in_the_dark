@@ -36,11 +36,16 @@ def create_user(db: Session, user_create: UserCreate) -> UserRead:
         email=user_create.email,
         hashed_password=hashed_password,
         is_staff=user_create.is_staff,
+        profile_picture = user_create.profile_picture,
+        first_name = user_create.first_name,
+        last_name = user_create.last_name,
+        advisor_id = user_create.advisor_id,
+        phone_number = user_create.phone_number,
         is_active=True,
         first_connection=True,  # Default: user has not logged in yet
     )
     
-    # Save user to the database
+    # Save user to the database     
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
@@ -53,6 +58,10 @@ def create_user(db: Session, user_create: UserCreate) -> UserRead:
         is_active=db_user.is_active,
         profile_picture=db_user.profile_picture,
         first_connection=db_user.first_connection,
+        first_name = db_user.first_name,
+        last_name = db_user.last_name,
+        advisor_id = db_user.advisor_id,
+        phone_number = db_user.phone_number,
     )
 
 def get_user_by_id(db: Session, user_id: UUID) -> UserRead:
@@ -83,6 +92,10 @@ def get_user_by_id(db: Session, user_id: UUID) -> UserRead:
         is_active=db_user.is_active,
         profile_picture=db_user.profile_picture,
         first_connection=db_user.first_connection,
+        first_name = db_user.first_name,
+        last_name = db_user.last_name,
+        advisor_id = db_user.advisor_id,
+        phone_number = db_user.phone_number,
     )
 
 def update_user(db: Session, updated_user: User):

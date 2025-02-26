@@ -21,11 +21,8 @@ class CustomLoginView(LoginView):
     redirect_authenticated_user = True
 
     def form_valid(self, form):
-        print("là")
         email = form.cleaned_data.get('username')  # Récupère l'email
-        print(f"email {email}")
         password = form.cleaned_data.get('password')  # Récupère le mot de passe
-        print(f"password {password}")
         
         try:
             # Essaye de te connecter via l'API
@@ -54,15 +51,16 @@ class CustomLoginView(LoginView):
         except Exception as e:
             messages.error(self.request, f"Erreur: {e}")
         
-        return HttpResponseRedirect(self.get_redirect_url())
-
+        return redirect('accounts:dashboard')
+    
     def get_redirect_url(self):
-        return reverse_lazy('accounts:dashboard')
+        redirect('accounts:dashboard')
 
 
 class RedirectDashboardView(View):
     def get(self, request, *args, **kwargs):
         print(f"request user :{self.request.user}")
+        print(f"request session : {self.request.session['user_info']}")
         if request.user.is_staff:
             return redirect('accounts:advisor_dashboard')
         else:
@@ -73,31 +71,35 @@ class CreateUserView(CreateView):
     model = CustomUser
     form_class = UserCreate
     template_name = "accounts/advisor_dashboard.html"
-    success_url = reverse_lazy('accounts:login')
+    success_url = reverse_lazy('accounts:advisor_dashboard')
     
 
     def form_valid(self, form):
-        user_info = self.request.session.get('user_info')
-        user = get_object_or_404(CustomUser, id=user_info['id'])
-        token = user.api_token
+        # print(f"request user :{self.request.user}")
+        # print(f"request session : {self.request.session['user_info']}")
+        # user_info = self.request.session.get('user_info')
+        # print(f"user info : {user_info}")
+        token = self.request.user.api_token
         headers = {
                 "Authorization": f"Bearer {token}",
                 "Accept": "application/json"
             }
         api_url = os.getenv("API_BASE_URL", settings.API_BASE_URL) + "/create_user"
         django_data = form.cleaned_data
+        django_data["password"] = "password1234"
         try:
             response = requests.post(api_url, json=django_data, headers=headers)
-            django_data.pop('password', None)
             data = response.json()
             if response.status_code == 201:
                 form.instance.id = data.get("id")
-                form.instance.password = None
                 return super().form_valid(form)
             else:
                 return JsonResponse({"error": data}, status=response.status_code)
         except requests.RequestException as e:
             return JsonResponse({"error": str(e)}, status=500)
+    
+    def get_redirect_url(self):
+        redirect('accounts:dashboard')
 
 def logout_view(request):
     request.session.flush()
