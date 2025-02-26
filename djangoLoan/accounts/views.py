@@ -5,7 +5,7 @@ from accounts.models import CustomUser
 from loans.models import Loan
 from .utils import APIClient
 from django.shortcuts import get_object_or_404
-from django.views.generic import CreateView, View, TemplateView
+from django.views.generic import CreateView, View, TemplateView, ListView
 from accounts.forms import UserCreate, UserFisrtLoginForm
 from django.conf import settings
 import os 
@@ -61,59 +61,8 @@ class CustomLoginView(LoginView):
     def get_redirect_url(self):
         redirect('accounts:dashboard')
 
-
-class RedirectDashboardView(View):
-    def get(self, request, *args, **kwargs):
-        if request.user.is_staff:
-            return redirect('accounts:advisor_dashboard')
-        else:
-            return redirect('accounts:user_dashboard')
-        
-class UserDashboardView(TemplateView):
-    template_name = 'accounts/client_dashboard.html'
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        loan = Loan.objects.filter(user=self.request.user).first()
-        context['loan'] = loan
-
-        return context
-
-
-class CreateUserView(CreateView):
-    model = CustomUser
-    form_class = UserCreate
-    template_name = "accounts/advisor_dashboard.html"
-    success_url = reverse_lazy('accounts:advisor_dashboard')
-    
-
-    def form_valid(self, form):
-        # print(f"request user :{self.request.user}")
-        # print(f"request session : {self.request.session['user_info']}")
-        # user_info = self.request.session.get('user_info')
-        # print(f"user info : {user_info}")
-        token = self.request.user.api_token
-        headers = {
-                "Authorization": f"Bearer {token}",
-                "Accept": "application/json"
-            }
-        api_url = os.getenv("API_BASE_URL", settings.API_BASE_URL) + "/create_user"
-        django_data = form.cleaned_data
-        django_data["password"] = "password1234"
-        try:
-            response = requests.post(api_url, json=django_data, headers=headers)
-            data = response.json()
-            if response.status_code == 201:
-                form.instance.id = data.get("id")
-                form.instance.set_password(django_data["password"])
-                return super().form_valid(form)
-            else:
-                return JsonResponse({"error": data}, status=response.status_code)
-        except requests.RequestException as e:
-            return JsonResponse({"error": str(e)}, status=500)
-    
-    def get_redirect_url(self):
-        redirect('accounts:dashboard')
+class CustomLogoutView(LogoutView):
+    next_page = reverse_lazy('accounts:login')
 
 class FirstLoginView(View):
     template_name = "accounts/first_login.html"
@@ -147,5 +96,65 @@ class FirstLoginView(View):
 
         return render(request, self.template_name, {"form": form})
 
-class CustomLogoutView(LogoutView):
-    next_page = reverse_lazy('accounts:login')
+class RedirectDashboardView(View):
+    def get(self, request, *args, **kwargs):
+        if request.user.is_staff:
+            return redirect('accounts:advisor_dashboard')
+        else:
+            return redirect('accounts:user_dashboard')
+        
+class UserDashboardView(TemplateView):
+    template_name = 'accounts/client_dashboard.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        loan = Loan.objects.filter(user=self.request.user).first()
+        context['loan'] = loan
+
+        return context
+
+class AdvisorDashboardView(TemplateView):
+    template_name = 'accounts/advisor_dashboard.html'
+
+
+class CreateUserView(CreateView):
+    model = CustomUser
+    form_class = UserCreate
+    template_name = "accounts/create_user.html"
+    success_url = reverse_lazy('accounts:advisor_dashboard')
+    
+
+    def form_valid(self, form):
+        token = self.request.user.api_token
+        headers = {
+                "Authorization": f"Bearer {token}",
+                "Accept": "application/json"
+            }
+        api_url = os.getenv("API_BASE_URL", settings.API_BASE_URL) + "/create_user"
+        django_data = form.cleaned_data
+        django_data["password"] = "password1234"
+        try:
+            response = requests.post(api_url, json=django_data, headers=headers)
+            data = response.json()
+            if response.status_code == 201:
+                form.instance.id = data.get("id")
+                form.instance.set_password(django_data["password"])
+                return super().form_valid(form)
+            else:
+                return JsonResponse({"error": data}, status=response.status_code)
+        except requests.RequestException as e:
+            return JsonResponse({"error": str(e)}, status=500)
+    
+    def get_redirect_url(self):
+        redirect('accounts:dashboard')
+
+class UserListView(ListView):
+    model = CustomUser
+    template_name = "accounts/client_list.html"
+    context_object_name = "users"
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        queryset = queryset.filter(is_staff =False)
+        return queryset
+
