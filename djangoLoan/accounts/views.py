@@ -14,7 +14,7 @@ from django.urls import reverse_lazy
 from django.contrib.auth import get_user_model
 from django.http import HttpResponseRedirect
 from django.contrib.auth import login, authenticate
-from django.contrib.auth.views import LoginView
+from django.contrib.auth.views import LoginView, LogoutView
 
 class CustomLoginView(LoginView):
     template_name = 'accounts/login.html'
@@ -136,7 +136,5 @@ class FirstLoginView(View):
 
         return render(request, self.template_name, {"form": form})
 
-
-def logout_view(request):
-    request.session.flush()
-    return redirect('accounts:login')
+class CustomLogoutView(LogoutView):
+    next_page = reverse_lazy('accounts:login')
