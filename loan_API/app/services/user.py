@@ -124,6 +124,7 @@ def update_user(db: Session, updated_user: User):
 
 def update_user_password(session: Session, user: User, new_password: str):
     user.hashed_password = User.hash_password(new_password)
+    user.first_connection = False
     session.add(user)
     session.commit()
     session.refresh(user)

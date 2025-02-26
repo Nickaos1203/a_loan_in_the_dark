@@ -5,7 +5,7 @@ from accounts.models import CustomUser
 from .utils import APIClient
 from django.shortcuts import get_object_or_404
 from django.views.generic import CreateView, View
-from accounts.forms import UserCreate
+from accounts.forms import UserCreate, UserFisrtLoginForm
 from django.conf import settings
 import os 
 import requests
@@ -44,6 +44,10 @@ class CustomLoginView(LoginView):
                 # Sauvegarde des informations utilisateur dans la session
                 self.request.session['user_info'] = user_info
                 self.request.session['user_is_staff'] = user_info.get('is_staff')
+                print(user_info)
+
+                if user_info['first_connection']:
+                    return redirect('accounts:first_login')
 
                 return redirect('accounts:dashboard')
             else:
@@ -59,8 +63,6 @@ class CustomLoginView(LoginView):
 
 class RedirectDashboardView(View):
     def get(self, request, *args, **kwargs):
-        print(f"request user :{self.request.user}")
-        print(f"request session : {self.request.session['user_info']}")
         if request.user.is_staff:
             return redirect('accounts:advisor_dashboard')
         else:
@@ -101,6 +103,39 @@ class CreateUserView(CreateView):
     
     def get_redirect_url(self):
         redirect('accounts:dashboard')
+
+class FirstLoginView(View):
+    template_name = "accounts/first_login.html"
+
+    def get(self, request):
+        form = UserFisrtLoginForm()
+        return render(request, self.template_name, {"form": form})
+
+    def post(self, request):
+        form = UserFisrtLoginForm(request.POST)
+        if form.is_valid():
+            new_password = request.POST.get("new_password")
+            confirm_password = request.POST.get("confirm_new_password")
+
+            if new_password != confirm_password:
+                messages.error(request, "Les mots de passe ne correspondent pas.")
+                return render(request, self.template_name, {"form": form})
+
+            token = request.user.api_token  
+
+            response = APIClient.update_password(token, new_password)
+            if "error" in response:
+                messages.error(request, f"Erreur: {response['error']}")
+                return render(request, self.template_name, {"form": form})
+            
+            request.user.set_password(new_password)
+            request.user.first_connection = False
+            request.user.save()
+            messages.success(request, "Votre mot de passe a été mis à jour avec succès.")
+            return redirect("accounts:login") 
+
+        return render(request, self.template_name, {"form": form})
+
 
 def logout_view(request):
     request.session.flush()
