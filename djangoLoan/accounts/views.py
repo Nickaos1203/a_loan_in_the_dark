@@ -2,9 +2,10 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from accounts.models import CustomUser
+from loans.models import Loan
 from .utils import APIClient
 from django.shortcuts import get_object_or_404
-from django.views.generic import CreateView, View
+from django.views.generic import CreateView, View, TemplateView
 from accounts.forms import UserCreate, UserFisrtLoginForm
 from django.conf import settings
 import os 
@@ -67,6 +68,16 @@ class RedirectDashboardView(View):
             return redirect('accounts:advisor_dashboard')
         else:
             return redirect('accounts:user_dashboard')
+        
+class UserDashboardView(TemplateView):
+    template_name = 'accounts/client_dashboard.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        loan = Loan.objects.filter(user=self.request.user).first()
+        context['loan'] = loan
+
+        return context
 
 
 class CreateUserView(CreateView):

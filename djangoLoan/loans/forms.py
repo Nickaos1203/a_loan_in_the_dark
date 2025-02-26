@@ -16,6 +16,13 @@ class LoanForm(forms.ModelForm):
     recession = forms.ChoiceField(choices=[(None, 'N/A'), (0, 'Non'), (1, 'Oui')], required=False)
     urban_rural = forms.ChoiceField(choices=[(None, 'N/A'), (0, 'Non'), (1, 'Oui')], required=False)
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.required = False
+        self.fields['term'].required = True
+        self.fields['gr_appv'].required = True
+
     def clean_rev_line_cr(self):
         rev_line_cr = self.cleaned_data.get('rev_line_cr')
         if rev_line_cr in {'1','0'}:

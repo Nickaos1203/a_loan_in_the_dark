@@ -16,7 +16,7 @@ class LoanCreateView(CreateView):
     model = Loan
     template_name = "loans/create_loan.html"
     form_class = LoanForm
-    success_url = reverse_lazy("loans:user_loan")
+    success_url = reverse_lazy("accounts:user_dashboard")
 
     def form_valid(self, form):
         """
