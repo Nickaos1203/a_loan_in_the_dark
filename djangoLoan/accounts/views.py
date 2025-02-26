@@ -92,6 +92,7 @@ class CreateUserView(CreateView):
             data = response.json()
             if response.status_code == 201:
                 form.instance.id = data.get("id")
+                form.instance.set_password(django_data["password"])
                 return super().form_valid(form)
             else:
                 return JsonResponse({"error": data}, status=response.status_code)
