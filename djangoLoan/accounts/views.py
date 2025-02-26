@@ -88,11 +88,9 @@ class CreateUserView(CreateView):
         django_data = form.cleaned_data
         try:
             response = requests.post(api_url, json=django_data, headers=headers)
-            django_data.pop('password', None)
             data = response.json()
             if response.status_code == 201:
                 form.instance.id = data.get("id")
-                form.instance.password = None
                 return super().form_valid(form)
             else:
                 return JsonResponse({"error": data}, status=response.status_code)

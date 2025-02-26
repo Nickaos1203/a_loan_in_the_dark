@@ -23,5 +23,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('accounts.urls')),
     path('chat/', include('chat.urls')),
-    path('loans/', include('loans.urls'))
+    path('loans/', include('loans.urls')),
+    path('news/', include('news.urls')),
 ]+ static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
