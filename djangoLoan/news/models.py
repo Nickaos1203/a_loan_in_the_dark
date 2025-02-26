@@ -5,7 +5,7 @@ from accounts.models import CustomUser
 class New(models.Model):
     title = models.CharField(max_length=150)
     content = models.CharField(max_length=10000)
-    publication_date = models.DateTimeField(blank=True, null=True)
+    publication_date = models.DateTimeField(auto_now_add=True)
     author = models.ForeignKey(CustomUser, null= True, on_delete= models.SET_NULL)
 
     def __str__(self):

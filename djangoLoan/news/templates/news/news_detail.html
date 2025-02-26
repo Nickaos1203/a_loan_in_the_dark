@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Détails d'une actualité{% endblock %}
+
+{% block content %}
+
+<h2>{{ news.title }}</h2>
+<p>Date de publication : {{ news.publication_date }}</p>
+<p>Auteur : {{news.author}}</p>
+<p>{{ news.content }}</p>
+
+{% endblock %}

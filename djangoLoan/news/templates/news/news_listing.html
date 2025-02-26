@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}les actualités{% endblock %}
+
+{% block content %}
+
+<h1>Actualités</h1>
+
+{% for news in news_list %}
+
+<ul>
+    <li>Date de publication : {{news.publication_date}}</li>
+    <li>Titre : {{ news.title }}</li>
+    <li>Auteur : {{ news.author }}</li>
+    <li><a class="btn btn-primary" href="/news/{{news.id}}">Lire l'article</a></li>
+</ul>
+
+{% endfor %}
+
+
+{% endblock %}
