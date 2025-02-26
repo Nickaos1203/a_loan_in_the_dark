@@ -55,3 +55,10 @@ class UserRead(BaseModel):
     phone_number: Optional[str] = None
     advisor_id: Optional[UUID] = None
 
+
+class UserPasswordUpdate(BaseModel):
+    new_password: str
+
+#  = Field(..., min_length=6, max_length=128)
+
+

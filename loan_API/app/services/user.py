@@ -122,4 +122,10 @@ def update_user(db: Session, updated_user: User):
     db.commit()
     db.refresh(db_user)
 
+def update_user_password(session: Session, user: User, new_password: str):
+    user.hashed_password = User.hash_password(new_password)
+    session.add(user)
+    session.commit()
+    session.refresh(user)
+
 
