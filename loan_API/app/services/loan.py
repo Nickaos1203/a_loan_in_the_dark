@@ -1,6 +1,6 @@
 from app.models.user import User
 from app.models.loan import Loan, StatusEnum
-from app.schemas.loan import LoanCreate, LoanRead
+from app.schemas.loan import LoanCreate, LoanRead, AcceptOrRefuseLoan
 from app.database import get_db
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
@@ -105,16 +105,14 @@ def get_loan_by_user_id(db:Session, user_id:UUID):
         retained_job = db_loan.retained_job
     )
 
-def accept_or_refuse_loan(db: Session, loan_id: UUID, new_status:str):
-    print(f"loan_id : {loan_id}")
+def accept_or_refuse_loan(db: Session, loan_id: UUID, new_status:AcceptOrRefuseLoan):
+    print(f"loan_idddddddd : {loan_id}")
+    print(f"machin truc :{new_status}")
     loan = db.query(Loan).filter(Loan.id == loan_id).first()
     if not loan:
         raise HTTPException(status_code=404, detail="Loan not found")
     print(f"loan : {loan}")
-    if new_status == "accepté":
-        print("on est laaaaaaaaaaaaaaaaa")
-        new_status = StatusEnum.STATUS_ACCEPT
-    loan.status = new_status
+    print("on est laaaaaaaaaaaaaaaaa")
     db.add(loan)
     db.commit()
     db.refresh(loan)

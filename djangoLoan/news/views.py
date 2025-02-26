@@ -27,7 +27,7 @@ def create_news(request):
             current_news.author = request.user
             current_news.save()
 
-            return redirect('all_news')
+            return redirect('news:all_news')
     else:
         form = NewsForm()
     return render(request, "news/create_news_form.html", {"form": form})
