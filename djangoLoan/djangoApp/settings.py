@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'accounts',
     'chat',
     'loans',
+    'news',
     'corsheaders'
 ]
 
