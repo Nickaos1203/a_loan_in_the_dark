@@ -104,3 +104,17 @@ def get_loan_by_user_id(db:Session, user_id:UUID):
         gr_appv = db_loan.gr_appv,
         retained_job = db_loan.retained_job
     )
+
+def accept_or_refuse_loan(db: Session, loan_id: UUID, new_status:str):
+    print(f"loan_id : {loan_id}")
+    loan = db.query(Loan).filter(Loan.id == loan_id).first()
+    if not loan:
+        raise HTTPException(status_code=404, detail="Loan not found")
+    print(f"loan : {loan}")
+    if new_status == "accepté":
+        print("on est laaaaaaaaaaaaaaaaa")
+        new_status = StatusEnum.STATUS_ACCEPT
+    loan.status = new_status
+    db.add(loan)
+    db.commit()
+    db.refresh(loan)

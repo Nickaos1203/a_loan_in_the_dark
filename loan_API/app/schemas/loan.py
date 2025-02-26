@@ -61,3 +61,6 @@ class LoanRead(BaseModel):
     no_emp: Optional[int] = None
     term: int
     gr_appv: float
+
+class AcceptOrRefuseLoan(BaseModel):
+    status: str

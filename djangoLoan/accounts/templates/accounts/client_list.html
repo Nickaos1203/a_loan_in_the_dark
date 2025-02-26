@@ -19,9 +19,13 @@
                     <td>{{ user.username }}</td>
                     <td>{{ user.email }}</td>
                     {% if user.loan %}
-                    <td><p>hop</p></td>
+                    <td><p>status de la demande : {{ user.loan.status }}</p>
+                    <form action="{% url 'loans:advisor_loan' pk=user.loan.id %}" method="get">
+                        {% csrf_token %}
+                        <button type="submit" class="nav-link">Détail</button>
+                    </form></td>
                     {% else  %}
-                    <td><p>hip</p></td>
+                    <td><p>Cette entreprise n'a pas encore fait de demande</p></td>
                     {% endif %}
                 </tr>
             {% endfor %}
