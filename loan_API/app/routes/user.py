@@ -12,32 +12,24 @@ from app.services.user import update_user_password
 
 router = APIRouter()
 
-@router.post("/create_user", response_model=UserRead, status_code=status.HTTP_201_CREATED)
-async def create_new_user(
-    user_create: UserCreate, 
-    db: Session = Depends(get_db), 
-    current_user: User = Depends(get_current_user)
-):
-    """
-    Creates a new user. Only staff users can access this route.
-
-    Args:
-        user_create (UserCreate): The data of the user to be created.
-        db (Session): The database session.
-        current_user (User): The currently authenticated user.
-
-    Returns:
-        UserRead: The created user information.
-
-    Raises:
-        HTTPException: If the current user is not a staff member.
-    """
+@router.post("/create_user", response_model=UserRead)
+async def create_new_user(user_create: UserCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    print(f"Received create user request with data: {user_create}")
+    print(f"Current user: {current_user.email}, is_staff: {current_user.is_staff}")
+    
+    # Vérification du staff
     if not current_user.is_staff:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Access denied. You must be a staff user.",
-        )
-    return create_user(db=db, user_create=user_create)
+        print("Access denied: User is not staff")
+        raise HTTPException(status_code=403, detail="Access denied. You must be a staff user.")
+    
+    # Création de l'utilisateur
+    try:
+        new_user = create_user(db=db, user_create=user_create)
+        print(f"User created successfully: {new_user.email}")
+        return new_user
+    except Exception as e:
+        print(f"Error creating user: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/user/{user_id}", response_model=UserRead)
 async def read_user(user_id: UUID, db: Session = Depends(get_db)):

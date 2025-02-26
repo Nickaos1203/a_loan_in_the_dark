@@ -12,16 +12,6 @@ router = APIRouter()
 def login(user: UserConnection, db: Session = Depends(get_db)):
     """
     Authenticates a user and returns an access token.
-
-    Args:
-        user (UserConnection): The user's login credentials (email and password).
-        db (Session): The database session.
-
-    Returns:
-        dict: A dictionary containing the access token and token type.
-
-    Raises:
-        HTTPException: If the user is not registered or the password is incorrect.
     """
     # Find user by email
     db_user = db.query(User).filter(User.email == user.email).first()

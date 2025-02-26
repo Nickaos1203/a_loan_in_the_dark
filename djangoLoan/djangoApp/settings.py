@@ -49,14 +49,14 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'accounts.middleware.CustomAuthMiddleware', 
-    'corsheaders.middleware.CorsMiddleware',
-    'django.middleware.common.CommonMiddleware',
+    'accounts.middleware.CustomAuthMiddleware',
+    'chat.middleware.ChatAuthMiddleware',
 ]
 
 ROOT_URLCONF = 'djangoApp.urls'
@@ -80,16 +80,6 @@ TEMPLATES = [
 WSGI_APPLICATION = 'djangoApp.wsgi.application'
 ASGI_APPLICATION = 'djangoApp.asgi.application'
 
-
-CHANNEL_LAYERS = {
-    'default': {
-        'BACKEND': 'channels_redis.core.RedisChannelLayer',
-        'CONFIG': {
-            "hosts": [('127.0.0.1', 6379)],
-        },
-    },
-}
-
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
@@ -109,7 +99,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Configuration API
-API_BASE_URL = os.getenv('API_BASE_URL', 'http://localhost:8000/')
+API_BASE_URL = os.getenv('API_BASE_URL', 'http://localhost:8000')
 
 
 # Password validation
@@ -196,3 +186,14 @@ CORS_ALLOW_HEADERS = [
     "x-csrftoken",
     "x-requested-with",
 ]
+
+ASGI_APPLICATION = 'djangoApp.asgi.application'
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [('127.0.0.1', 6379)],
+        },
+    },
+}

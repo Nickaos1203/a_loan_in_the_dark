@@ -13,8 +13,31 @@
     <header>
         {% include 'includes/header.html' %}
     </header>
+    {% comment %} <title>{% block title %}Bank App{% endblock %}</title>
+    <style>
+        /* Vos styles CSS ici */
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="nav-container">
+            <a href="{% url 'accounts:dashboard' %}" class="nav-brand">BankApp</a>
+            {% if request.session.token %}
+                <div class="nav-links">
+                    <a href="{% url 'accounts:dashboard' %}">Dashboard</a>
+                    {% if request.session.user_is_staff %}
+                        <a href="#">Demandes</a>  <!-- Lien temporaire -->
+                    {% else %}
+                        <a href="#">Mon Compte</a>  <!-- Lien temporaire -->
+                    {% endif %}
+                    <a href="{% url 'chat:chat_room' %}">Chat</a>  <!-- Nouveau lien vers le chat -->
+                    <a href="{% url 'accounts:logout' %}">Déconnexion</a>
+                </div>
+            {% endif %}
+        </div>
+    </nav> {% endcomment %}
 
-    <!--block contenu-->
+    {% comment %} <!--block contenu-->
     <main class="container">
         {% block content %}
         {% endblock %}
@@ -24,9 +47,19 @@
             <p>{{ message }}</p>
         {% endfor %}
     </div>
-    {% endif %}
-    </main>
+    {% endif %} {% endcomment %}
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+        {% if messages and not 'chat' in request.path %}
+            {% for message in messages %}
+                <div class="message {% if message.tags == 'error' %}error{% else %}success{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+        {% block content %}{% endblock %}
+    </main>
+
+    {% block javascript %}{% endblock %}
 </body>
 </html>

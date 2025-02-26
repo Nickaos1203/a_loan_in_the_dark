@@ -14,8 +14,13 @@ load_dotenv()
 
 # Secret key and algorithm for JWT
 SECRET_KEY = os.getenv("SECRET_KEY")
+if not SECRET_KEY:
+    # Fallback for development only - In production, always use environment variable
+    SECRET_KEY = "votre_cle_secrete_de_dev_123!@#"
+    print("Warning: Using default SECRET_KEY. This is not secure in production.")
+
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 1))
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 30))
 
 # OAuth2 authentication scheme
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
