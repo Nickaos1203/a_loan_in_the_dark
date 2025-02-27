@@ -5,7 +5,7 @@ from accounts.models import CustomUser
 from loans.models import Loan
 from .utils import APIClient
 from django.shortcuts import get_object_or_404
-from django.views.generic import CreateView, View, TemplateView, ListView
+from django.views.generic import CreateView, View, TemplateView, ListView, UpdateView
 from accounts.forms import UserCreate, UserFisrtLoginForm
 from django.conf import settings
 import os 
