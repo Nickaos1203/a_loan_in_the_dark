@@ -9,12 +9,24 @@
 
 {% for news in news_list %}
 
-<ul>
+{% comment %} <ul>
     <li>Date de publication : {{news.publication_date}}</li>
     <li>Titre : {{ news.title }}</li>
     <li>Auteur : {{ news.author }}</li>
     <li><a class="btn btn-primary" href="/news/{{news.id}}">Lire l'article</a></li>
-</ul>
+</ul> {% endcomment %}
+
+<div class="card" style="width: 18rem;">
+    {% if news.picture %}
+    <img src="{{ news.picture.url }}" class="card-img-top" alt="{{news.title}}">
+    {% endif %}
+    <div class="card-body">
+      <h5 class="card-title">{{ news.title }}</h5>
+      <p class="card-text">Date de publication : {{news.publication_date}}</p>
+      <a href="/news/{{news.id}}" class="btn btn-primary">Lire l'article</a>
+    </div>
+</div>
+
 
 {% endfor %}
 
