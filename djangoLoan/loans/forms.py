@@ -17,14 +17,16 @@ class LoanForm(forms.ModelForm):
     urban_rural = forms.ChoiceField(choices=[(None, 'N/A'), (0, 'Non'), (1, 'Oui')], required=False)
 
     def __init__(self, *args, **kwargs):
-    #     if self.instance:
-    #         for field_name in ['rev_line_cr', 'low_doc', 'new_exist', 
-    #                            'has_franchise', 'recession', 'urban_rural']:
-    #             field_value = getattr(self.instance, field_name, None)
-    #             if field_value is not None:
-    #                 self.fields[field_name].initial = str(field_value)  # Convertir en str
-        
         super().__init__(*args, **kwargs)
+        print(self.__dict__)
+        if self.instance:
+            for field_name in ['state', 'bank', 'naics', 'rev_line_cr', 'low_doc', 'new_exist', 
+                  'has_franchise', 'recession', 'urban_rural', 'create_job', 'retained_job', 
+                  'no_emp', 'term', 'gr_appv']:
+                field_value = getattr(self.instance, field_name, None)
+                if field_value is not None:
+                    self.fields[field_name].initial = field_value # Convertir en str
+        
         for field in self.fields.values():
             field.required = False
         self.fields['term'].required = True
