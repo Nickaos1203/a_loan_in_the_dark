@@ -4,31 +4,46 @@
 {% block title %}les actualités{% endblock %}
 
 {% block content %}
+<ul class="nav justify-content-center">
+  <li class="nav-item">
+    <a class="nav-link active" aria-current="page" href="{% url "all_news" %}"><b>Voir les actualités</b></a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link active" aria-current="page" href="{% url "my_news" %}"><b>Gérer mes publications</b></a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="{% url "create_news" %}"><b>Créer une publication</b></a>
+  </li>
+</ul>
 
-<h1>Actualités</h1>
+<div class="container">
+  <h1 class="font-title"><b>Actualités</b></h1>
 
-{% for news in news_list %}
+<div class="row padding-bottom">
+  {% for news in news_list %}
+  <div class="d-flex justify-content-between col-sm-6 col-md-4 col-lg-3 mb-4">
 
-{% comment %} <ul>
-    <li>Date de publication : {{news.publication_date}}</li>
-    <li>Titre : {{ news.title }}</li>
-    <li>Auteur : {{ news.author }}</li>
-    <li><a class="btn btn-primary" href="/news/{{news.id}}">Lire l'article</a></li>
-</ul> {% endcomment %}
-
-<div class="card" style="width: 18rem;">
-    {% if news.picture %}
-    <img src="{{ news.picture.url }}" class="card-img-top" alt="{{news.title}}">
-    {% endif %}
-    <div class="card-body">
-      <h5 class="card-title">{{ news.title }}</h5>
-      <p class="card-text">Date de publication : {{news.publication_date}}</p>
-      <a href="/news/{{news.id}}" class="btn btn-primary">Lire l'article</a>
+    <div class="card" style="width: 18rem;">
+      {% if news.picture %}
+      <img class="card-img-top" src= "{{ news.picture.url }}", alt="{{news.title}}">
+      {% else %}
+      <img class="card-img-top" src= "https://cdn.pixabay.com/photo/2018/04/07/18/46/danbo-3299229_1280.jpg", alt="no_picture">
+      {% endif %}
+      <div class="card-body">
+        <h5 class="card-title"><b>{{news.title}}</b></h5>
+        <p class="card-text">Auteur : {{ news.author }}</p>
+        <p class="card-text">Date de publication : {{news.publication_date}}</p>
+      <a href="/news/{{news.id}}" class="btn btn-warning"><b>Lire l'article</b></a>
+      </div>
     </div>
+
+  </div>
+  {% endfor %}
+
+</div>
 </div>
 
 
-{% endfor %}
 
 
 {% endblock %}

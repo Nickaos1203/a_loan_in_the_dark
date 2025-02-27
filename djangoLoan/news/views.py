@@ -56,3 +56,13 @@ def update_news(request, id):
 def news_by_user(request):
     my_news = New.objects.filter(author=request.user)
     return render(request, "news/all_my_news.html", {"my_news": my_news})
+
+@login_required
+def delete_news(request, id):
+    news = New.objects.get(id=id)
+
+    if request.method == "POST":
+        news.delete()
+        return redirect("my_news")
+
+    return render(request, "news/news_delete.html", {"news": news})

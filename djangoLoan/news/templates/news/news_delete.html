@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Supprimer une publication{% endblock %}
+
+{% block content %}
+<h1>Supprimer la publications</h1>
+
+<p>Etes-vous sûr de vouloir supprimer la publication n° {{ news.id }} ?</p>
+
+<form method="post">
+{% csrf_token %}
+<input type="submit" value="Supprimer">
+</form>
+
+
+{% endblock %}
