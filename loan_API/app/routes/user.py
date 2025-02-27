@@ -12,7 +12,7 @@ from app.services.user import update_user_password
 
 router = APIRouter()
 
-@router.post("/create_user", response_model=UserRead)
+@router.post("/create_user", response_model=UserRead, status_code=status.HTTP_201_CREATED)
 async def create_new_user(user_create: UserCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     print(f"Received create user request with data: {user_create}")
     print(f"Current user: {current_user.email}, is_staff: {current_user.is_staff}")
