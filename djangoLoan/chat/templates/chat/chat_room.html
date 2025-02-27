@@ -1,37 +1,250 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div id="chat-container" data-user-email="{{ user_info.email }}" data-user-id="{{user_info.id}}" data-is-staff="{{ user_info.is_staff|yesno:'true,false' }}" class="container mt-5">
-    <!-- Onglets -->
-    <div class="tabs">
-        <div class="tab general active" onclick="switchTab('general')">Chat général</div>
-        <div class="tab private" onclick="switchTab('private')">
-            Chat privé
-            {% if not user_info.is_staff %}
-            <span class="badge bg-primary">Support</span>
-            {% endif %}
+<style>
+  /* Dark mode styling */
+  body {
+    background-color: #121212;
+    color: #e0e0e0;
+  }
+  
+  html, body {
+    overflow-y: hidden;
+    height: 100%;
+  }
+  
+  .chat-container {
+    background-color: #121212;
+    height: calc(100vh - 80px); /* ajustez selon la hauteur de votre header */
+    overflow-y: hidden;
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 20px;
+  }
+  
+  .card {
+    background-color: #1e1e1e;
+    border-color: #333;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+  
+  .card-header {
+    background-color: #252525;
+    border-color: #333;
+    padding: 0.75rem 1rem;
+  }
+  
+  .card-footer {
+    background-color: #1e1e1e;
+    border-top: 1px solid #333;
+    padding: 15px;
+  }
+  
+  .input-group .form-control {
+    background-color: #2d2d2d;
+    color: #e0e0e0;
+    border-color: #444;
+  }
+  
+  .input-group .form-control::placeholder {
+    color: #aaa;
+  }
+  .chat-title {
+    color: #ffffff;
+    font-weight: 600;
+    margin-bottom: 0;
+  }
+  .input-group .btn-primary {
+    background-color: #0d6efd;
+  }
+  
+  .message {
+    border-bottom: 1px solid #333;
+    color: white;
+  }
+  
+  .user-message {
+    background-color: #252525;
+  }
+  
+  .staff-message {
+    background-color: #1d3245;
+  }
+  
+  /* Chat layout */
+  .chat-wrapper {
+    display: flex;
+    gap: 20px;
+    margin-top: 20px;
+    flex: 1;
+    min-height: 0; /* Important pour éviter le débordement */
+    overflow: hidden;
+  }
+  
+  .chat-column {
+    flex: 1;
+    max-width: 50%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  
+  .chat-panel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+  }
+  
+  .chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 15px;
+    min-height: 0; /* Important pour permettre le scroll */
+  }
+  
+  /* Online users overlay */
+  .online-users-container {
+    position: relative;
+    margin-bottom: 20px;
+  }
+  
+  .online-users-button {
+    width: 100%;
+    text-align: left;
+    background-color: #252525;
+    border: 1px solid #333;
+    color: #e0e0e0;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .online-users-overlay {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    background-color: #252525;
+    border: 1px solid #333;
+    border-radius: 5px;
+    padding: 15px;
+    margin-top: 5px;
+    max-height: 300px;
+    overflow-y: auto;
+  }
+  
+  .online-users-overlay.show {
+    display: block;
+  }
+  
+  .reply-info {
+    display: none;
+    background-color: #2d2d2d;
+    padding: 8px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+  }
+  
+  .avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    color: white;
+  }
+  
+  .badge {
+    margin-left: 5px;
+  }
+  
+  .role-badge {
+    background-color: #0d6efd;
+    color: white;
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    margin-left: 0.25rem;
+  }
+  
+  .header-description {
+    font-size: 0.8rem;
+    color: #aaa;
+    margin-top: 3px;
+  }
+  
+  .arrow-down {
+    margin-left: 5px;
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 5px solid #fff;
+    display: inline-block;
+    vertical-align: middle;
+    transition: transform 0.3s;
+  }
+  
+  .online-users-button:hover .arrow-down {
+    transform: translateY(3px);
+  }
+  
+  .message-timestamp {
+    color: #aaa;
+    font-size: 0.8rem;
+  }
+</style>
+
+<div id="chat-container" data-user-email="{{ user_info.email }}" data-user-id="{{user_info.id}}" data-is-staff="{{ user_info.is_staff|yesno:'true,false' }}" class="container-fluid chat-container py-4">
+    
+    <!-- Online Users Button -->
+    <div class="online-users-container">
+        <button class="online-users-button" onclick="toggleOnlineUsers()">
+            <span>Utilisateurs en ligne (<span id="online-count">0</span>)</span>
+            <span class="arrow-down"></span>
+        </button>
+        
+        <div id="online-users-overlay" class="online-users-overlay">
+            <h4 class="mb-3 text-white">Utilisateurs en ligne</h4>
+            <ul id="online-users" class="list-group">
+                <!-- Les utilisateurs en ligne seront ajoutés dynamiquement ici -->
+            </ul>
         </div>
     </div>
     
-    <div class="row">
-        <div class="col-md-8">
-            <!-- Chat Général -->
-            <div id="general-panel" class="chat-panel active">
+    <!-- Chat Columns -->
+    <div class="chat-wrapper">
+        <!-- General Chat -->
+        <div class="chat-column">
+            <div id="general-panel" class="chat-panel">
                 <div class="card chat-card">
                     <div class="card-header chat-header">
                         <h3 class="chat-title">Chat général</h3>
+                        <div class="header-description">Forum général en direct</div>
                     </div>
                     <div id="general-messages" class="chat-messages">
                         {% for message in public_messages %}
-                            <div class="message {% if message.is_staff %}staff-message{% else %}user-message{% endif %}" data-message-id="{{ message.id }}">
-                                <strong>
+                            <div class="message {% if message.is_staff %}staff-message{% else %}user-message{% endif %} p-2 mb-2" data-message-id="{{ message.id }}">
+                                <strong class="text-white">
                                     {{ message.user.email }} 
                                     {% if message.is_staff %}
                                         <span class="badge bg-warning text-dark">conseiller</span>
+                                    {% else %}
+                                        <span class="role-badge">utilisateur</span>
                                     {% endif %}
                                 </strong>
-                                <span class="text-muted small">{{ message.formatted_timestamp }}</span>
-                                <div>{{ message.content }}</div>
+                                <span class="message-timestamp">{{ message.formatted_timestamp|date:"d/m H:i" }}</span>
+                                <div class="text-white">{{ message.content }}</div>
                             </div>
                         {% endfor %}
                     </div>
@@ -45,35 +258,35 @@
                     </div>
                 </div>
             </div>
-            
-            <!-- Chat Privé -->
+        </div>
+        
+        <!-- Private Chat -->
+        <div class="chat-column">
             <div id="private-panel" class="chat-panel">
                 <div class="card chat-card">
                     <div class="card-header chat-header private-header">
                         <h3 class="chat-title">Chat privé</h3>
-                        {% if user_info.is_staff %}
-                        <small>Assistance client</small>
-                        {% else %}
-                        <small>Demandez de l'aide à nos conseillers</small>
-                        {% endif %}
+                        <div class="header-description">Contactez un assistant qui vous répondra dans la minute</div>
                     </div>
                     <div id="private-messages" class="chat-messages">
                         {% for message in private_messages %}
-                            <div class="message {% if message.is_staff %}staff-message{% else %}user-message{% endif %}" 
+                            <div class="message {% if message.is_staff %}staff-message{% else %}user-message{% endif %} p-2 mb-2" 
                                  data-message-id="{{ message.id }}" 
                                  data-user-id="{{ message.user.id }}" 
                                  data-user-email="{{ message.user.email }}">
-                                <strong>
+                                <strong class="text-white">
                                     {{ message.user.email }} 
                                     {% if message.is_staff %}
                                         <span class="badge bg-warning text-dark">conseiller</span>
+                                    {% else %}
+                                        <span class="role-badge">utilisateur</span>
                                     {% endif %}
                                 </strong>
-                                <span class="text-muted small">{{ message.formatted_timestamp }}</span>
-                                <div>{{ message.content }}</div>
+                                <span class="message-timestamp">{{ message.formatted_timestamp|date:"d/m H:i" }}</span>
+                                <div class="text-white">{{ message.content }}</div>
                                 {% if user_info.is_staff and not message.is_staff %}
-                                <div class="reply-actions">
-                                    <button class="reply-btn" onclick="replyToMessage('{{ message.id }}', '{{ message.user.id }}', '{{ message.user.email }}')">Répondre</button>
+                                <div class="reply-actions mt-1">
+                                    <button class="reply-btn btn btn-sm btn-outline-light" onclick="replyToMessage('{{ message.id }}', '{{ message.user.id }}', '{{ message.user.email }}')">Répondre</button>
                                 </div>
                                 {% endif %}
                             </div>
@@ -89,41 +302,36 @@
                             <input type="hidden" id="reply-to-id" value="">
                             <div class="input-group">
                                 <input type="text" id="private-input" class="form-control" placeholder="Message privé...">
-                                <button type="submit" class="btn" style="background-color: var(--accent); color: #333;">Envoyer</button>
+                                <button type="submit" class="btn btn-primary">Envoyer</button>
                             </div>
                         </form>
                     </div>
                 </div>
             </div>
         </div>
-
-        <div class="col-md-4">
-            <div class="card chat-card">
-                <div class="card-header chat-header">
-                    <h3 class="chat-title">Utilisateurs en ligne</h3>
-                </div>
-                <div class="card-body">
-                    <ul id="online-users" class="list-group">
-                        <!-- Les utilisateurs en ligne seront ajoutés dynamiquement ici -->
-                    </ul>
-                </div>
-            </div>
-        </div>
     </div>
 </div>
 
-{% block scripts %}
 <script>
-    // Fonction pour basculer entre les onglets
-    function switchTab(tab) {
-        document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
-        document.querySelectorAll('.chat-panel').forEach(el => el.classList.remove('active'));
-        
-        document.querySelector(`.tab.${tab}`).classList.add('active');
-        document.getElementById(`${tab}-panel`).classList.add('active');
+    // Toggle online users overlay
+    function toggleOnlineUsers() {
+        const overlay = document.getElementById('online-users-overlay');
+        overlay.classList.toggle('show');
     }
     
-    // Fonction pour répondre à un message
+    // Format date: converts "DD-MM-YYYY HH:MM" to "DD/MM HH:MM"
+    function formatDate(dateStr) {
+        if (!dateStr) return '';
+        const parts = dateStr.split(' ');
+        if (parts.length !== 2) return dateStr;
+        
+        const dateParts = parts[0].split('-');
+        if (dateParts.length !== 3) return dateStr;
+        
+        return `${dateParts[0]}/${dateParts[1]} ${parts[1]}`;
+    }
+    
+    // Function to reply to a message
     function replyToMessage(messageId, userId, userEmail) {
         document.getElementById('recipient-id').value = userId;
         document.getElementById('reply-to-id').value = messageId;
@@ -132,24 +340,33 @@
         document.getElementById('reply-user').textContent = username;
         document.getElementById('reply-info').style.display = 'block';
         
-        // Mettre le focus sur le champ de saisie
+        // Focus on input field
         document.getElementById('private-input').focus();
-        
-        // Passer à l'onglet privé
-        switchTab('private');
     }
     
-    // Fonction pour annuler une réponse
+    // Function to cancel reply
     function cancelReply() {
         document.getElementById('recipient-id').value = '';
         document.getElementById('reply-to-id').value = '';
         document.getElementById('reply-info').style.display = 'none';
     }
+    
+    // Close the overlay when clicking outside of it
+    document.addEventListener('click', function(event) {
+        const overlay = document.getElementById('online-users-overlay');
+        const button = document.querySelector('.online-users-button');
+        
+        if (overlay.classList.contains('show') && 
+            !overlay.contains(event.target) && 
+            !button.contains(event.target)) {
+            overlay.classList.remove('show');
+        }
+    });
 
     document.addEventListener('DOMContentLoaded', function() {
         console.log("Chat script initialized");
         
-        // Éléments du DOM
+        // DOM elements
         const generalMessages = document.getElementById('general-messages');
         const generalForm = document.getElementById('general-form');
         const generalInput = document.getElementById('general-input');
@@ -163,20 +380,21 @@
         const replyUser = document.getElementById('reply-user');
         
         const onlineUsers = document.getElementById('online-users');
+        const onlineCount = document.getElementById('online-count');
         const chatContainer = document.getElementById('chat-container');
         
-        // Données utilisateur
+        // User data
         const currentUserEmail = chatContainer.dataset.userEmail;
         const currentUserId = chatContainer.dataset.userId;
         const isStaff = chatContainer.dataset.isStaff === 'true';
         
         console.log("User info:", currentUserEmail, isStaff);
         
-        // Défiler vers le bas des messages
+        // Scroll to bottom of messages
         generalMessages.scrollTop = generalMessages.scrollHeight;
         privateMessages.scrollTop = privateMessages.scrollHeight;
         
-        // Formater les noms d'utilisateur existants
+        // Format existing usernames
         function formatExistingUsernames() {
             document.querySelectorAll('.message strong').forEach(element => {
                 const text = element.childNodes[0].textContent.trim();
@@ -189,16 +407,16 @@
         
         formatExistingUsernames();
         
-        // Liste des utilisateurs en ligne
+        // Online users list
         const onlineUsersList = new Set();
         
-        // Ajouter l'utilisateur actuel
+        // Add current user
         if (currentUserEmail) {
             onlineUsersList.add(currentUserEmail);
             updateOnlineUsersList();
         }
         
-        // Connecter WebSocket avec gestion d'erreur et reconnexion
+        // Connect WebSocket with error handling and reconnection
         let chatSocket;
         let reconnectAttempts = 0;
         const maxReconnectAttempts = 5;
@@ -207,16 +425,16 @@
             console.log("Connecting to WebSocket...");
             
             try {
-                // Créer une nouvelle connexion WebSocket
+                // Create new WebSocket connection
                 chatSocket = new WebSocket(
                     'ws://' + window.location.host + '/ws/chat/'
                 );
                 
                 chatSocket.onopen = function(e) {
                     console.log('WebSocket connection established');
-                    reconnectAttempts = 0; // Réinitialiser le compteur de tentatives
+                    reconnectAttempts = 0; // Reset attempt counter
                     
-                    // Annoncer que l'utilisateur rejoint le chat
+                    // Announce user joining chat
                     if (currentUserEmail) {
                         try {
                             chatSocket.send(JSON.stringify({
@@ -234,37 +452,42 @@
                         const data = JSON.parse(e.data);
                         
                         if (data.type === 'message') {
-                            // Message public
+                            // Public message
                             const message = data.message;
                             const username = message.user_email.split('@')[0];
+                            const formattedDate = formatDate(message.timestamp);
                             
                             const messageElement = document.createElement('div');
-                            messageElement.className = `message ${message.is_staff ? 'staff-message' : 'user-message'}`;
+                            messageElement.className = `message ${message.is_staff ? 'staff-message' : 'user-message'} p-2 mb-2`;
                             messageElement.dataset.messageId = message.id;
                             
                             messageElement.innerHTML = `
-                                <strong>
+                                <strong class="text-white">
                                     ${username} 
-                                    ${message.is_staff ? '<span class="badge bg-warning text-dark">conseiller</span>' : ''}
+                                    ${message.is_staff ? 
+                                        '<span class="badge bg-warning text-dark">conseiller</span>' : 
+                                        '<span class="role-badge">utilisateur</span>'
+                                    }
                                 </strong>
-                                <span class="text-muted small">${message.timestamp}</span>
-                                <div>${message.content}</div>
+                                <span class="message-timestamp">${formattedDate}</span>
+                                <div class="text-white">${message.content}</div>
                             `;
                             
                             generalMessages.appendChild(messageElement);
                             generalMessages.scrollTop = generalMessages.scrollHeight;
                         }
                         else if (data.type === 'private_message') {
-                            // Message privé
+                            // Private message
                             const message = data.message;
                             const username = message.user_email.split('@')[0];
+                            const formattedDate = formatDate(message.timestamp);
                             
-                            // Vérifier si ce message nous concerne
+                            // Check if this message concerns us
                             if (isStaff || message.user_email === currentUserEmail || 
                                 message.recipient_email === currentUserEmail) {
                                 
                                 const messageElement = document.createElement('div');
-                                messageElement.className = `message ${message.is_staff ? 'staff-message' : 'user-message'}`;
+                                messageElement.className = `message ${message.is_staff ? 'staff-message' : 'user-message'} p-2 mb-2`;
                                 messageElement.dataset.messageId = message.id;
                                 messageElement.dataset.userId = message.user_id;
                                 messageElement.dataset.userEmail = message.user_email;
@@ -272,19 +495,22 @@
                                 let replyButton = '';
                                 if (isStaff && !message.is_staff) {
                                     replyButton = `
-                                        <div class="reply-actions">
-                                            <button class="reply-btn" onclick="replyToMessage('${message.id}', '${message.user_id}', '${message.user_email}')">Répondre</button>
+                                        <div class="reply-actions mt-1">
+                                            <button class="reply-btn btn btn-sm btn-outline-light" onclick="replyToMessage('${message.id}', '${message.user_id}', '${message.user_email}')">Répondre</button>
                                         </div>
                                     `;
                                 }
                                 
                                 messageElement.innerHTML = `
-                                    <strong>
+                                    <strong class="text-white">
                                         ${username} 
-                                        ${message.is_staff ? '<span class="badge bg-warning text-dark">conseiller</span>' : ''}
+                                        ${message.is_staff ? 
+                                            '<span class="badge bg-warning text-dark">conseiller</span>' : 
+                                            '<span class="role-badge">utilisateur</span>'
+                                        }
                                     </strong>
-                                    <span class="text-muted small">${message.timestamp}</span>
-                                    <div>${message.content}</div>
+                                    <span class="message-timestamp">${formattedDate}</span>
+                                    <div class="text-white">${message.content}</div>
                                     ${replyButton}
                                 `;
                                 
@@ -293,7 +519,7 @@
                             }
                         }
                         else if (data.type === 'user_join') {
-                            // Utilisateur rejoint
+                            // User joining
                             if (!onlineUsersList.has(data.user)) {
                                 onlineUsersList.add(data.user);
                                 updateOnlineUsersList();
@@ -307,7 +533,7 @@
                             }
                         }
                         else if (data.type === 'user_leave') {
-                            // Utilisateur part
+                            // User leaving
                             if (onlineUsersList.has(data.user)) {
                                 onlineUsersList.delete(data.user);
                                 updateOnlineUsersList();
@@ -328,7 +554,7 @@
                 chatSocket.onclose = function(e) {
                     console.error('WebSocket closed unexpectedly. Code:', e.code, 'Reason:', e.reason);
                     
-                    // Tentative de reconnexion avec back-off exponentiel
+                    // Reconnection attempt with exponential back-off
                     if (reconnectAttempts < maxReconnectAttempts) {
                         reconnectAttempts++;
                         const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 30000);
@@ -339,7 +565,7 @@
                         }, delay);
                     } else {
                         console.error(`Failed to reconnect after ${maxReconnectAttempts} attempts.`);
-                        // Afficher un message à l'utilisateur
+                        // Show message to user
                         const connectionError = document.createElement('div');
                         connectionError.className = 'alert alert-danger m-3';
                         connectionError.innerHTML = `
@@ -362,17 +588,17 @@
             }
         }
         
-        // Initialiser la connexion WebSocket
+        // Initialize WebSocket connection
         chatSocket = connectWebSocket();
         
-        // Formulaire de chat général
+        // General chat form
         generalForm.addEventListener('submit', function(e) {
             e.preventDefault();
             
             const message = generalInput.value.trim();
             if (!message) return;
             
-            // Envoyer via WebSocket si possible
+            // Send via WebSocket if possible
             if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
                 try {
                     chatSocket.send(JSON.stringify({
@@ -385,7 +611,7 @@
                 console.warn('WebSocket not connected. Using HTTP fallback.');
             }
             
-            // Toujours envoyer via HTTP pour garantir la livraison
+            // Always send via HTTP to ensure delivery
             fetch('/chat/api/send/', {
                 method: 'POST',
                 headers: {
@@ -408,7 +634,7 @@
             generalInput.value = '';
         });
         
-        // Formulaire de chat privé
+        // Private chat form
         privateForm.addEventListener('submit', function(e) {
             e.preventDefault();
             
@@ -418,16 +644,16 @@
             const recipient = recipientId.value;
             const replyTo = replyToId.value;
             
-            // Construire les données du formulaire
+            // Build form data
             const formData = new FormData();
             formData.append('content', message);
             if (recipient) formData.append('recipient_id', recipient);
             if (replyTo) formData.append('reply_to_id', replyTo);
             
-            // Convertir FormData en URLEncoded
+            // Convert FormData to URLEncoded
             const urlEncodedData = new URLSearchParams(formData).toString();
             
-            // Envoyer le message privé via WebSocket si possible
+            // Send private message via WebSocket if possible
             if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
                 try {
                     chatSocket.send(JSON.stringify({
@@ -441,7 +667,7 @@
                 }
             }
             
-            // Toujours envoyer via HTTP
+            // Always send via HTTP
             fetch('/chat/api/private/send/', {
                 method: 'POST',
                 headers: {
@@ -461,7 +687,7 @@
             })
             .then(data => {
                 console.log("Private message sent:", data);
-                // Réinitialiser le formulaire
+                // Reset form
                 privateInput.value = '';
                 recipientId.value = '';
                 replyToId.value = '';
@@ -470,37 +696,46 @@
             .catch(error => console.error('Error:', error));
         });
         
-        // Mettre à jour la liste des utilisateurs en ligne
+        // Update online users list
         function updateOnlineUsersList() {
             onlineUsers.innerHTML = '';
+            onlineCount.textContent = onlineUsersList.size;
             
             onlineUsersList.forEach(user => {
                 const username = user.split('@')[0];
                 
                 const userElement = document.createElement('li');
                 userElement.className = 'list-group-item d-flex align-items-center';
+                userElement.style.backgroundColor = '#252525';
+                userElement.style.border = '1px solid #333';
+                userElement.style.marginBottom = '5px';
+                userElement.style.color = '#fff';
                 
                 if (user === currentUserEmail) {
                     userElement.innerHTML = `
                         <div class="d-flex align-items-center">
-                            <div class="rounded-circle bg-primary text-white d-flex justify-content-center align-items-center me-2" style="width: 32px; height: 32px;">
+                            <div class="avatar bg-primary me-2">
                                 ${username.charAt(0).toUpperCase()}
                             </div>
                             <div>
                                 <strong>${username}</strong>
                                 <small class="text-muted d-block">(vous)</small>
                             </div>
+                            <span class="role-badge ms-auto">
+                                ${isStaff ? 'conseiller' : 'utilisateur'}
+                            </span>
                         </div>
                     `;
                 } else {
                     userElement.innerHTML = `
-                        <div class="d-flex align-items-center">
-                            <div class="rounded-circle bg-secondary text-white d-flex justify-content-center align-items-center me-2" style="width: 32px; height: 32px;">
+                        <div class="d-flex align-items-center w-100">
+                            <div class="avatar bg-secondary me-2">
                                 ${username.charAt(0).toUpperCase()}
                             </div>
                             <div>
                                 ${username}
                             </div>
+                            <span class="role-badge ms-auto">utilisateur</span>
                         </div>
                     `;
                 }
@@ -509,7 +744,7 @@
             });
         }
         
-        // Obtenir un cookie
+        // Get cookie
         function getCookie(name) {
             let cookieValue = null;
             if (document.cookie && document.cookie !== '') {
@@ -525,7 +760,7 @@
             return cookieValue;
         }
         
-        // Actualiser les messages généraux
+        // Refresh general messages
         function refreshGeneralMessages() {
             fetch('/chat/api/messages/')
                 .then(response => {
@@ -533,120 +768,166 @@
                         if (response.status === 401) {
                             window.location.href = '/accounts/login/?next=/chat/';
                         }
-                        throw new Error('Erreur lors de la récupération des messages');
+                        throw new Error('Error retrieving messages');
                     }
                     return response.json();
                 })
                 .then(data => {
-                    // Actualiser uniquement si le panneau est actif et que l'utilisateur ne tape pas
-                    if (document.getElementById('general-panel').classList.contains('active') && document.activeElement !== generalInput) {
-                        generalMessages.innerHTML = '';
+                    // Refresh only if user is not typing
+                    if (document.activeElement !== generalInput) {
+                        // Get current message IDs
+                        const currentMessageIds = Array.from(generalMessages.querySelectorAll('.message'))
+                            .map(el => el.dataset.messageId);
+                            
+                        // Check for new messages
+                        const newMessages = data.messages.filter(msg => 
+                            !currentMessageIds.includes(msg.id.toString())
+                        );
                         
-                        data.messages.forEach(message => {
-                            const username = message.user_email.split('@')[0];
+                        if (newMessages.length > 0) {
+                            const wasScrolledToBottom = generalMessages.scrollHeight - generalMessages.clientHeight <= generalMessages.scrollTop + 10;
                             
-                            const messageElement = document.createElement('div');
-                            messageElement.className = `message ${message.is_staff ? 'staff-message' : 'user-message'}`;
-                            messageElement.dataset.messageId = message.id;
+                            // Append only new messages
+                            newMessages.forEach(message => {
+                                const username = message.user_email.split('@')[0];
+                                const formattedDate = formatDate(message.timestamp);
+                                
+                                const messageElement = document.createElement('div');
+                                messageElement.className = `message ${message.is_staff ? 'staff-message' : 'user-message'} p-2 mb-2`;
+                                messageElement.dataset.messageId = message.id;
+                                
+                                messageElement.innerHTML = `
+                                    <strong class="text-white">
+                                        ${username} 
+                                        ${message.is_staff ? 
+                                            '<span class="badge bg-warning text-dark">conseiller</span>' : 
+                                            '<span class="role-badge">utilisateur</span>'
+                                        }
+                                    </strong>
+                                    <span class="message-timestamp">${formattedDate}</span>
+                                    <div class="text-white">${message.content}</div>
+                                `;
+                                
+                                generalMessages.appendChild(messageElement);
+                            });
                             
-                            messageElement.innerHTML = `
-                                <strong>
-                                    ${username} 
-                                    ${message.is_staff ? '<span class="badge bg-warning text-dark">conseiller</span>' : ''}
-                                </strong>
-                                <span class="text-muted small">${message.timestamp}</span>
-                                <div>${message.content}</div>
-                            `;
-                            
-                            generalMessages.appendChild(messageElement);
-                        });
-                        
-                        generalMessages.scrollTop = generalMessages.scrollHeight;
+                            // Auto-scroll if was at bottom
+                            if (wasScrolledToBottom) {
+                                generalMessages.scrollTop = generalMessages.scrollHeight;
+                            }
+                        }
                     }
                 })
                 .catch(error => {
-                    console.error('Erreur lors de la récupération des messages:', error);
+                    console.error('Error retrieving messages:', error);
                 });
         }
         
-        // Actualiser les messages privés
+        // Refresh private messages
         function refreshPrivateMessages() {
-          
-            const loadingIndicator = document.createElement('div');
-            loadingIndicator.className = 'text-center text-muted small my-1';
-            loading.textContent = 'Actualisation...';
-            loadingIndicator.id = 'private-loading';
-
-            if (!document.getElementById('private-loading')){
-                privateMessages.appendChild(loadingIndicator);
-            }
-        }
-
-        fetch('/chat/api/private/messages/')
+            fetch('/chat/api/private/messages/')
             .then(response => {
                 if (!response.ok) {
                     if (response.status === 401) {
                         window.location.href = '/accounts/login/?next=/chat/';
                     }
-                    throw new Error('Erreur lors de la récupération des messages privés');
+                    throw new Error('Error retrieving private messages');
                 }
                 return response.json();
             })
             .then(data => {
-                console.log("Messages privés reçus:", data.messages.length);
-
-                const currentMessageIds = Array.from(privateMessages.querySelectorAll('.message'))
+                // Refresh only if user is not typing
+                if (document.activeElement !== privateInput) {
+                    // Get current message IDs
+                    const currentMessageIds = Array.from(privateMessages.querySelectorAll('.message'))
                         .map(el => el.dataset.messageId);
-
-                const loadingEl = document.getElementById('private-loading');
-                if (loadingEl) {
-                        privateMessages.removeChild(loadingEl);
-                } 
-                 
-                const newMessages = data.messages.filter(msg => 
-                !currentMessageIds.includes(msg.id.toString())
-                );  
-                
-                if (newMessages.length>0){
-                   console.log("Nouveaux messages privés à afficher:", newMessages.length);
-                   
-                   const wasScrolledToBottom = privateMessages.scrollHeight - privateMessages.clientHeight <= privateMessages.scrollTop + 10;
-
+                        
+                    // Check for new messages
+                    const newMessages = data.messages.filter(msg => 
+                        !currentMessageIds.includes(msg.id.toString())
+                    );
+                    
+                    if (newMessages.length > 0) {
+                        const wasScrolledToBottom = privateMessages.scrollHeight - privateMessages.clientHeight <= privateMessages.scrollTop + 10;
+                        
+                        // Append only new messages
+                        newMessages.forEach(message => {
+                            const username = message.user_email.split('@')[0];
+                            const formattedDate = formatDate(message.timestamp);
+                            
+                            const messageElement = document.createElement('div');
+                            messageElement.className = `message ${message.is_staff ? 'staff-message' : 'user-message'} p-2 mb-2`;
+                            messageElement.dataset.messageId = message.id;
+                            messageElement.dataset.userId = message.user_id;
+                            messageElement.dataset.userEmail = message.user_email;
+                            
+                            let replyButton = '';
+                            if (isStaff && !message.is_staff) {
+                                replyButton = `
+                                    <div class="reply-actions mt-1">
+                                        <button class="reply-btn btn btn-sm btn-outline-light" onclick="replyToMessage('${message.id}', '${message.user_id}', '${message.user_email}')">Répondre</button>
+                                    </div>
+                                `;
+                            }
+                            
+                            messageElement.innerHTML = `
+                                <strong class="text-white">
+                                    ${username} 
+                                    ${message.is_staff ? 
+                                        '<span class="badge bg-warning text-dark">conseiller</span>' : 
+                                        '<span class="role-badge">utilisateur</span>'
+                                    }
+                                </strong>
+                                <span class="message-timestamp">${formattedDate}</span>
+                                <div class="text-white">${message.content}</div>
+                                ${replyButton}
+                            `;
+                            
+                            privateMessages.appendChild(messageElement);
+                        });
+                        
+                        // Auto-scroll if was at bottom
+                        if (wasScrolledToBottom) {
+                            privateMessages.scrollTop = privateMessages.scrollHeight;
+                        }
+                    }
                 }
-
             })
-        
-        // Function to simulate online users for testing
-        function simulateOnlineUsers() {
-            // Add current user if not already in list
-            if (currentUserEmail && !onlineUsersList.has(currentUserEmail)) {
-                onlineUsersList.add(currentUserEmail);
-            }
-            
-            // Check if we need to add test users
-            if (onlineUsersList.size < 1) {
-                console.log("Adding test users to online list");
-                // Add some test users for demonstration
-                onlineUsersList.add(currentUserEmail || "vous@example.com");
-            }
-            
-            updateOnlineUsersList();
+            .catch(error => {
+                console.error('Error retrieving private messages:', error);
+            });
+    }
+    
+    // Function to simulate online users for testing
+    function simulateOnlineUsers() {
+        // Add current user if not already in list
+        if (currentUserEmail && !onlineUsersList.has(currentUserEmail)) {
+            onlineUsersList.add(currentUserEmail);
         }
         
-        // Call once to ensure there are users shown
-        simulateOnlineUsers();
+        // Check if we need to add test users
+        if (onlineUsersList.size < 1) {
+            console.log("Adding test users to online list");
+            // Add some test users for demonstration
+            onlineUsersList.add(currentUserEmail || "vous@example.com");
+        }
         
-        // Actualiser les messages régulièrement
-        setInterval(refreshGeneralMessages, 1000);
-        setInterval(refreshPrivateMessages, 1000);
-        
-        // Rafraîchir la liste des utilisateurs en ligne
-        setInterval(simulateOnlineUsers, 30000);
-        
-        // Initial message refresh
-        refreshGeneralMessages();
-        refreshPrivateMessages();
-    });
+        updateOnlineUsersList();
+    }
+    
+    // Call once to ensure there are users shown
+    simulateOnlineUsers();
+    
+    // Refresh messages regularly
+    setInterval(refreshGeneralMessages, 1000);
+    setInterval(refreshPrivateMessages, 1000);
+    
+    // Refresh online users list
+    setInterval(simulateOnlineUsers, 30000);
+    
+    // Initial message refresh
+    refreshGeneralMessages();
+    refreshPrivateMessages();
+});
 </script>
-{% endblock %}
 {% endblock %}
