@@ -7,6 +7,7 @@ from sqlalchemy import JSON, Column
 import cloudpickle
 import pandas as pd
 import shap
+import os
 
 ex_data = {"State" : "OH",
         "Bank" : "CAPITAL ONE NATL ASSOC",
@@ -109,10 +110,6 @@ class NAICSEnum(str, Enum):
     NAICS_55 = "55"
     NAICS_22 = "22"
 
-from sqlmodel import SQLModel, Field, Relationship
-from enum import Enum
-from typing import Optional
-import os
 
 def read_bank_file(file_path: str):
     with open('static/banks_name.str', 'r') as f:

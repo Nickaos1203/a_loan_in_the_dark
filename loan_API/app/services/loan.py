@@ -105,14 +105,20 @@ def get_loan_by_user_id(db:Session, user_id:UUID):
         retained_job = db_loan.retained_job
     )
 
-def accept_or_refuse_loan(db: Session, loan_id: UUID, new_status:AcceptOrRefuseLoan):
+def accept_or_refuse_loan(db: Session, loan_id: UUID, new_status: StatusEnum):
     print(f"loan_idddddddd : {loan_id}")
-    print(f"machin truc :{new_status}")
+    print(f"new_status : {new_status}")
     loan = db.query(Loan).filter(Loan.id == loan_id).first()
     if not loan:
         raise HTTPException(status_code=404, detail="Loan not found")
-    print(f"loan : {loan}")
+    
+    print(f"loan :{loan} loan status : {loan.status}")
+    loan.status = new_status
+    
+    print(f"loan :{loan} loan status : {loan.status}")
     print("on est laaaaaaaaaaaaaaaaa")
     db.add(loan)
     db.commit()
     db.refresh(loan)
+    
+    return {"message": f"Loan status updated to {new_status}"}

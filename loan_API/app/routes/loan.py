@@ -24,5 +24,5 @@ async def put_status_loan(
     status: AcceptOrRefuseLoan,
     loan_id: UUID ,
     db: Session = Depends(get_db)):
-    return accept_or_refuse_loan(db=db, loan_id=loan_id, new_status=status)
+    return accept_or_refuse_loan(db=db, loan_id=loan_id, new_status=status.new_status)
 
