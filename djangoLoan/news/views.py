@@ -45,7 +45,7 @@ def update_news(request, id):
         if form.is_valid():
             form.save()
 
-            return redirect('all_news')
+            return redirect('news:all_news')
     
     else:
         form = EditNewsForm(instance=updated_news)
@@ -63,6 +63,6 @@ def delete_news(request, id):
 
     if request.method == "POST":
         news.delete()
-        return redirect("my_news")
+        return redirect("news:my_news")
 
     return render(request, "news/news_delete.html", {"news": news})
