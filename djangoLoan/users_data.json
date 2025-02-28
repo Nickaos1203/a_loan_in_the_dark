@@ -1,6 +1,6 @@
 [
     {
-        "id": "e61a0799-519d-4bd0-b04f-eeb7c9b6d3eb",
+        "id": "49b7d57b-cb7c-411a-a9d5-c1caac58f7ec",
         "email": "vic@staff.fr",
         "is_staff": true,
         "is_active": true,
@@ -12,7 +12,7 @@
         "advisor_id": null
     },
     {
-        "id": "fdcbfbf3-b069-4ea2-b04b-95e8682100f0",
+        "id": "56e38c09-5f1d-425f-81d7-3b037a35219a",
         "email": "nico@staff.fr",
         "is_staff": true,
         "is_active": true,
@@ -24,7 +24,7 @@
         "advisor_id": null
     },
     {
-        "id": "03085a35-7e6e-4cda-aeee-c91cc88b3cb4",
+        "id": "02107749-0686-40e3-afff-7632f069c5f1",
         "email": "leo@staff.fr",
         "is_staff": true,
         "is_active": true,

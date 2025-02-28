@@ -196,8 +196,6 @@ class Loan(SQLModel, table=True):
         with open('static/lightGBM_model.pkl', "rb") as f:
             model = cloudpickle.load(f)
         df = pd.DataFrame([self.get_data()])
-        print(df)
-        print(df.dtypes)
         self.prediction = int(model.predict(df)[0])
         proba = model.predict_proba(df)[0]
         self.proba_no = proba[0]
