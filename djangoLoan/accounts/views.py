@@ -5,8 +5,8 @@ from accounts.models import CustomUser
 from loans.models import Loan
 from .utils import APIClient
 from django.shortcuts import get_object_or_404
-from django.views.generic import CreateView, View, TemplateView, ListView, UpdateView
-from accounts.forms import UserCreate, UserFisrtLoginForm
+from django.views.generic import CreateView, View, TemplateView, ListView, UpdateView, DetailView
+from accounts.forms import UserCreate, UserFisrtLoginForm, UserUpdate
 from django.conf import settings
 import os 
 import requests
@@ -175,3 +175,35 @@ class UserListView(ListView):
         queryset = queryset.filter(is_staff =False)
         return queryset
 
+class UserEditProfileView(UpdateView):
+    model = CustomUser
+    template_name = 'accounts/profil_update.html'
+    form_class = UserUpdate
+    success_url = reverse_lazy('accounts:dashboard')
+
+    def form_valid(self, form):
+        token = self.request.user.api_token
+        headers = {
+                "Authorization": f"Bearer {token}",
+                "Accept": "application/json"
+            }
+        api_url = os.getenv("API_BASE_URL", settings.API_BASE_URL) + "/me/edit"
+        django_data = form.cleaned_data
+        del django_data["profile_picture"]
+        try:
+            response = requests.patch(api_url, json=django_data, headers=headers)
+            data = response.json()
+            if response.status_code == 200:
+                return super().form_valid(form)
+            else:
+                return JsonResponse({"error": data}, status=response.status_code)
+        except requests.RequestException as e:
+            return JsonResponse({"error": str(e)}, status=500)
+    
+    def get_redirect_url(self):
+        redirect('accounts:dashboard')
+
+class UserView(DetailView):
+    model = CustomUser
+    template_name = 'accounts/profil.html'
+    context_object_name = 'user'

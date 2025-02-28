@@ -29,8 +29,9 @@
             {% endif %}
         </div>
         <div class="border rounded p-4">
-            <h3 class="text-lg font-semibold mb-4">Mon conseiller</h3>
-            <!-- Informations du conseiller à implémenter -->
+            <h3 class="text-lg font-semibold mb-4">Profil</h3>
+            <a class="nav-link" href="{% url 'accounts:profil' pk=request.user.id %}">Voir mon profil</a>
+            <a class="nav-link" href="{% url 'accounts:user_edit' pk=request.user.id %}">Modifier mon profil</a>
         </div>
     </div>
 </div>
