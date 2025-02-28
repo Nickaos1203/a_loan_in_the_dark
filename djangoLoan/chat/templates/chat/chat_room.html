@@ -5,7 +5,15 @@
 <link rel="stylesheet" href="{% static 'chat/css/chat.css' %}">
 
 <div id="chat-container" data-user-email="{{ user_info.email }}" data-user-id="{{user_info.id}}" data-is-staff="{{ user_info.is_staff|yesno:'true,false' }}" class="container-fluid chat-container py-4">
-    
+    <!-- Licorne qui dort -->
+    <div class="sleeping-unicorn">
+        <img src="{% static 'chat/images/sleeping-unicorn.png' %}" alt="Licorne qui dort">
+        <div class="zzz">
+            <span>Z</span>
+            <span>Z</span>
+            <span>Z</span>
+        </div>
+    </div>
     <!-- Online Users Button -->
     <div class="online-users-container">
         <button class="online-users-button" onclick="toggleOnlineUsers()">
