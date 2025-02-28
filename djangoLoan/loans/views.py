@@ -67,6 +67,37 @@ class LoanUpdateView(UpdateView):
     form_class = LoanForm
     success_url = reverse_lazy("accounts:user_dashboard")
 
+    def get_object(self, queryset=None):
+        obj = super().get_object(queryset)
+        print(f"Retrieved loan object: {obj.__dict__}")  # Pour déboguer
+        return obj
+    
+    def get_form(self, form_class=None):
+        """Méthode pour initialiser correctement le formulaire avec les données de l'instance"""
+        form = super().get_form(form_class)
+        loan = self.get_object()
+        
+        # Remplir manuellement le formulaire avec les valeurs de l'instance
+        form.initial = {
+            'state': loan.state,
+            'bank': loan.bank,
+            'naics': loan.naics,
+            'rev_line_cr': str(loan.rev_line_cr) if loan.rev_line_cr is not None else None,
+            'low_doc': str(loan.low_doc) if loan.low_doc is not None else None,
+            'new_exist': str(loan.new_exist) if loan.new_exist is not None else None,
+            'has_franchise': str(loan.has_franchise) if loan.has_franchise is not None else None,
+            'recession': str(loan.recession) if loan.recession is not None else None,
+            'urban_rural': str(loan.urban_rural) if loan.urban_rural is not None else None,
+            'create_job': loan.create_job,
+            'retained_job': loan.retained_job,
+            'no_emp': loan.no_emp,
+            'term': loan.term,
+            'gr_appv': loan.gr_appv,
+        }
+        print(f"form initiaaaaaaaaaaaaaaaaaaaaaaaal : {form.initial}")
+        
+        return form
+
     def form_valid(self, form):
         """
         Méthode appelée si le formulaire est valide.
