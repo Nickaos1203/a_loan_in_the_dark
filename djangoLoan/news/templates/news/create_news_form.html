@@ -6,19 +6,19 @@
 {% block content %}
 <ul class="nav justify-content-center">
   <li class="nav-item">
-    <a class="nav-link active" aria-current="page" href="{% url "news:all_news" %}"><b>Voir les actualités</b></a>
+    <a class="nav-link active text-dark" aria-current="page" href="{% url "news:all_news" %}"><b>Voir les actualités</b></a>
   </li>
   <li class="nav-item">
-    <a class="nav-link active" aria-current="page" href="{% url "news:my_news" %}"><b>Gérer mes publications</b></a>
+    <a class="nav-link active text-dark" aria-current="page" href="{% url "news:my_news" %}"><b>Gérer mes publications</b></a>
   </li>
   <li class="nav-item">
-    <a class="nav-link" href="{% url "news:create_news" %}"><b>Créer une publication</b></a>
+    <a class="nav-link text-dark" href="{% url "news:create_news" %}"><b>Créer une publication</b></a>
   </li>
 </ul>
 
 
 <div class="m-4">
-  <a href="{% url "news:all_news" %}"><b>Retour</b></a>
+  <a class="text-dark" href="{% url "news:all_news" %}"><b>Retour</b></a>
 </div>
 
 <div class= "container">
@@ -31,13 +31,13 @@
 
         <div class="mb-3">
             <label for="title" class="form-label">Titre de l'article :</label>
-            <input type="text" name="title" class="form-control" id="title">
+            <input type="text" name="title" class="form-control" id="title" required>
             <div id="title" class="form-text">Ajouter un titre à votre article</div>
           </div>
         
           <div class="mb-3">
             <label for="content" class="form-label">Contenu de l'article :</label>
-            <textarea type="text" name="content" class="form-control" id="content"></textarea>
+            <textarea type="text" name="content" class="form-control" id="content" required></textarea>
             <div id="content" class="form-text">Ajouter le contenu de votre article</div>
           </div>
 
