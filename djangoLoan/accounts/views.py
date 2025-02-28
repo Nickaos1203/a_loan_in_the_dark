@@ -5,7 +5,7 @@ from accounts.models import CustomUser
 from loans.models import Loan
 from .utils import APIClient
 from django.shortcuts import get_object_or_404
-from django.views.generic import CreateView, View, TemplateView, ListView
+from django.views.generic import CreateView, View, TemplateView, ListView, UpdateView
 from accounts.forms import UserCreate, UserFisrtLoginForm
 from django.conf import settings
 import os 
@@ -16,6 +16,9 @@ from django.contrib.auth import get_user_model
 from django.http import HttpResponseRedirect
 from django.contrib.auth import login, authenticate
 from django.contrib.auth.views import LoginView, LogoutView
+import random
+import string
+from django.core.mail import send_mail
 
 class CustomLoginView(LoginView):
     template_name = 'accounts/login.html'
@@ -122,6 +125,11 @@ class CreateUserView(CreateView):
     form_class = UserCreate
     template_name = "accounts/create_user.html"
     success_url = reverse_lazy('accounts:advisor_dashboard')
+
+    def generate_password(self, length=12):
+        """Génère un mot de passe aléatoire"""
+        characters = string.ascii_letters + string.digits + string.punctuation
+        return ''.join(random.choice(characters) for i in range(length))
     
 
     def form_valid(self, form):
@@ -132,13 +140,15 @@ class CreateUserView(CreateView):
             }
         api_url = os.getenv("API_BASE_URL", settings.API_BASE_URL) + "/create_user"
         django_data = form.cleaned_data
-        django_data["password"] = "password1234"
+        password = self.generate_password()
+        django_data["password"] = password
         try:
             response = requests.post(api_url, json=django_data, headers=headers)
             data = response.json()
             if response.status_code == 201:
                 form.instance.id = data.get("id")
-                form.instance.set_password(django_data["password"])
+                form.instance.set_password(password)
+                self.send_welcome_email(data.get("email"), password)
                 return super().form_valid(form)
             else:
                 return JsonResponse({"error": data}, status=response.status_code)
@@ -147,6 +157,13 @@ class CreateUserView(CreateView):
     
     def get_redirect_url(self):
         redirect('accounts:dashboard')
+
+    def send_welcome_email(self, email, password):
+        """Envoie un email avec les informations de connexion"""
+        subject = "Bienvenue sur notre plateforme"
+        message = f"Bonjour,\n\nVotre compte a été créé avec succès !\n\nVoici vos identifiants :\nEmail: {email}\nMot de passe: {password}\n\nVeuillez vous connecter et modifier votre mot de passe dès que possible.\n\nCordialement,\nL'équipe."
+        from_email = settings.DEFAULT_FROM_EMAIL
+        send_mail(subject, message, from_email, [email])
 
 class UserListView(ListView):
     model = CustomUser

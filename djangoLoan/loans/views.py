@@ -1,4 +1,4 @@
-from django.views.generic import CreateView, TemplateView, DetailView
+from django.views.generic import CreateView, TemplateView, DetailView, UpdateView
 from loans.models import Loan
 from loans.forms import LoanForm
 import requests
@@ -6,13 +6,12 @@ import os
 from django.conf import settings
 from django.urls import reverse_lazy
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
 from accounts.models import CustomUser
-import plotly.graph_objects as go
+from django.contrib import messages
 import plotly.express as px
 import plotly.utils
 import json
-import numpy as np
 import pandas as pd
 
 class LoanCreateView(CreateView):
@@ -43,27 +42,57 @@ class LoanCreateView(CreateView):
             data = response.json()
 
             if response.status_code == 201:
-                form.instance.id = data.get("id")
                 form.instance.user = user
-                form.instance.status = data.get("status")
-                form.instance.prediction = data.get("prediction") 
-                form.instance.proba_yes = data.get("proba_yes")
-                form.instance.proba_no = data.get("proba_no")
-                form.instance.shap_values = data.get("shap_values")
-                form.instance.state = data.get("state")
-                form.instance.bank = data.get("bank")
-                form.instance.naics = data.get("naics")
-                form.instance.rev_line_cr = data.get("rev_line_cr")
-                form.instance.low_doc = data.get("low_doc")
-                form.instance.new_exist = data.get("new_exist")
-                form.instance.has_franchise = data.get("has_franchise")
-                form.instance.recession = data.get("recession")
-                form.instance.urban_rural = data.get("urban_rural")
-                form.instance.create_job = data.get("create_job")
-                form.instance.retained_job = data.get("retained_job")
-                form.instance.no_emp = data.get("no_emp")
-                form.instance.term = data.get("term")
-                form.instance.gr_appv = data.get("gr_appv")
+                for key, value in data.items():
+                    setattr(form.instance, key, value)
+
+                return super().form_valid(form)
+            else:
+                return JsonResponse({"error": data}, status=response.status_code)
+
+        except requests.RequestException as e:
+            return JsonResponse({"error": str(e)}, status=500)
+
+    def form_invalid(self, form):
+        """
+        Méthode appelée si le formulaire est invalide.
+        """
+        if self.request.headers.get("X-Requested-With") == "XMLHttpRequest":
+            return JsonResponse({"errors": form.errors}, status=400)
+        return super().form_invalid(form)
+    
+class LoanUpdateView(UpdateView):
+    model = Loan
+    template_name = "loans/loan_update.html"
+    form_class = LoanForm
+    success_url = reverse_lazy("accounts:user_dashboard")
+
+    def form_valid(self, form):
+        """
+        Méthode appelée si le formulaire est valide.
+        1. Envoie les données du formulaire à l'API externe.
+        2. Si succès, enregistre l'objet Loan en base de données.
+        """
+        user_info = self.request.session.get('user_info')
+        user = get_object_or_404(CustomUser, id=user_info['id'])
+        token = user.api_token
+        headers = {
+                "Authorization": f"Bearer {token}",
+                "Accept": "application/json"
+            }
+        loan = self.get_object()
+        api_url = os.getenv("API_BASE_URL", settings.API_BASE_URL) + f"/loans/update_loan/{loan.id}"
+        django_data = form.cleaned_data
+        django_data["user_email"] = user.email
+
+        try:
+            response = requests.patch(api_url, json=django_data, headers=headers)
+            data = response.json()
+
+            if response.status_code == 200:
+                form.instance.user = user
+                for key, value in data.items():
+                    setattr(form.instance, key, value)
 
                 return super().form_valid(form)
             else:
@@ -114,3 +143,49 @@ class AdvisorLoanDetailView(DetailView):
         
         return context
 
+class UpdateStatusLoanView(UpdateView):
+    model = Loan
+    fields = []
+    
+    def get(self, request, *args, **kwargs):
+        action = request.GET.get('action')
+        loan = self.get_object()
+        
+        if action == 'validate':
+            status = 'accepté'  # Correspond à StatusEnum.STATUS_ACCEPT dans l'api
+        elif action == 'reject':
+            status = 'refusé'   # Correspond à StatusEnum.STATUS_REJECT dans l'api
+        else:
+            messages.error(request, "Action non reconnue")
+            return redirect('loans:advisor_loan', pk=loan.id) 
+        
+        api_url = os.getenv("API_BASE_URL", settings.API_BASE_URL) + f"/loans/accept_or_refuse_loan/{loan.id}"
+        
+        try:
+            token = self.request.user.api_token
+            headers = {
+                    "Authorization": f"Bearer {token}",
+                    "Accept": "application/json"
+                }
+            
+            response = requests.put(
+                api_url,
+                json={"new_status": status},
+                headers=headers
+            )
+            
+            if response.status_code == 200:
+                loan.status = status
+                loan.save()
+                messages.success(request, f"Statut du prêt mis à jour : {status}")
+            else:
+                messages.error(request, f"Erreur lors de la mise à jour : {response.text}")
+        
+        except Exception as e:
+            messages.error(request, f"Erreur de connexion à l'API : {str(e)}")
+        
+        # Rediriger vers la liste des prêts ou la page de détail
+        return redirect('accounts:list_users')
+    
+    def get_success_url(self):
+        return reverse_lazy('accounts:list_users')

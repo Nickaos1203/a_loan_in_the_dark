@@ -1,6 +1,6 @@
 from app.models.user import User
 from app.models.loan import Loan, StatusEnum
-from app.schemas.loan import LoanCreate, LoanRead
+from app.schemas.loan import LoanCreate, LoanRead, AcceptOrRefuseLoan
 from app.database import get_db
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
@@ -105,16 +105,51 @@ def get_loan_by_user_id(db:Session, user_id:UUID):
         retained_job = db_loan.retained_job
     )
 
-def accept_or_refuse_loan(db: Session, loan_id: UUID, new_status:str):
-    print(f"loan_id : {loan_id}")
+def accept_or_refuse_loan(db: Session, loan_id: UUID, new_status: StatusEnum):
     loan = db.query(Loan).filter(Loan.id == loan_id).first()
     if not loan:
         raise HTTPException(status_code=404, detail="Loan not found")
-    print(f"loan : {loan}")
-    if new_status == "accepté":
-        print("on est laaaaaaaaaaaaaaaaa")
-        new_status = StatusEnum.STATUS_ACCEPT
+
     loan.status = new_status
     db.add(loan)
     db.commit()
     db.refresh(loan)
+    
+    return {"message": f"Loan status updated to {new_status}"}
+
+def update_loan_service(db: Session, loan_id: UUID, loan_update: LoanCreate) -> None:
+    user = db.query(User).filter(User.email == loan_update.user_email).first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email not in the db",
+        )
+    db_loan = db.query(Loan).filter(Loan.id == loan_id).first()
+    if not db_loan:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Loan not found",
+        )
+
+    db_loan.state = loan_update.state
+    db_loan.bank = loan_update.bank
+    db_loan.naics = loan_update.naics
+    db_loan.rev_line_cr = loan_update.rev_line_cr
+    db_loan.low_doc = loan_update.low_doc
+    db_loan.new_exist = loan_update.new_exist
+    db_loan.create_job = loan_update.create_job
+    db_loan.has_franchise = loan_update.has_franchise
+    db_loan.recession = loan_update.recession
+    db_loan.urban_rural = loan_update.urban_rural
+    db_loan.term = loan_update.term
+    db_loan.no_emp = loan_update.no_emp
+    db_loan.gr_appv = loan_update.gr_appv
+    db_loan.retained_job = loan_update.retained_job
+
+    db_loan.make_prediction()
+    
+    # Save user to the database
+    db.commit()
+    db.refresh(db_loan)
+
+    return get_loan_by_id(db=db,loan_id=db_loan.id)

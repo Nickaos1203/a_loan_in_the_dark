@@ -63,4 +63,4 @@ class LoanRead(BaseModel):
     gr_appv: float
 
 class AcceptOrRefuseLoan(BaseModel):
-    status: str
+    new_status: StatusEnum

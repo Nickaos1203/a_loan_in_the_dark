@@ -1,6 +1,8 @@
 from django.urls import path
 from news.views import get_all_news, news_detail, create_news, update_news, news_by_user, delete_news
 
+app_name = 'news'
+
 urlpatterns = [
     path("", get_all_news, name="all_news"),
     path("me/", news_by_user, name="my_news"),

@@ -6,18 +6,18 @@
 {% block content %}
 <ul class="nav justify-content-center">
     <li class="nav-item">
-      <a class="nav-link active" aria-current="page" href="{% url "all_news" %}"><b>Voir les actualités</b></a>
+      <a class="nav-link active" aria-current="page" href="{% url "news:all_news" %}"><b>Voir les actualités</b></a>
     </li>
     <li class="nav-item">
-      <a class="nav-link active" aria-current="page" href="{% url "my_news" %}"><b>Gérer mes publications</b></a>
+      <a class="nav-link active" aria-current="page" href="{% url "news:my_news" %}"><b>Gérer mes publications</b></a>
     </li>
     <li class="nav-item">
-      <a class="nav-link" href="{% url "create_news" %}"><b>Créer une publication</b></a>
+      <a class="nav-link" href="{% url "news:create_news" %}"><b>Créer une publication</b></a>
     </li>
   </ul>
 
 <div class="m-4">
-    <a href="{% url "all_news" %}"><b>Retour</b></a>
+    <a href="{% url "news:all_news" %}"><b>Retour</b></a>
 </div>
 
 <div class= "container">

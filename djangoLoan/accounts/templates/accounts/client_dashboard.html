@@ -7,7 +7,13 @@
         <div class="border rounded p-4">
             <h3 class="text-lg font-semibold mb-4">Ma demandes de garantie de prêt</h3>
             {% if loan.status == "en attente" %}
-                <p>Votre demande est en cours de traitement</p>
+                <span>
+                    Votre demande est en cours de traitement
+                    <form action="{% url 'loans:loan_update' pk=request.user.loan.id %}" method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="nav-link">modifier ma demande</button>
+                    </form>
+                </span>
             {% elif loan.status == "refusé" %}
                 <p>Votre demande a été refusé</p>
             {% elif loan.status == "accepté" %}

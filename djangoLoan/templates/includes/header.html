@@ -9,10 +9,10 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav">
                 <li class="nav-item">
-                    <a class="nav-link active" aria-current="page" href="#">Accueil</a>
+                    <a class="nav-link active" aria-current="page" href={% url "accounts:dashboard" %}>Accueil</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="{% url 'all_news' %}">Actualités</a>
+                    <a class="nav-link" href="{% url 'news:all_news' %}">Actualités</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="{% url 'chat:chat_room' %}">Chat</a> 
