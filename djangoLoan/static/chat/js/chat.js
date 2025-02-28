@@ -498,9 +498,9 @@ function refreshGeneralMessages() {
                         messageElement.dataset.messageId = message.id;
 
                         // Vérification et création sécurisée de l'avatar
-                        const user = message.user || { profile_picture: { url: "/static/images/default-avatar.png" } };
+                        const user = message.user || { profile_picture: { url: "/static/images/default-avatar.jpg" } };
                         const avatar = document.createElement('img');
-                        avatar.src = user.profile_picture && user.profile_picture.url ? user.profile_picture.url : "/static/images/default-avatar.png";
+                        avatar.src = user.profile_picture && user.profile_picture.url ? user.profile_picture.url : "/static/images/default-avatar.jpg";
                         avatar.alt = 'Profile Picture';
                         avatar.className = 'rounded-circle';
                         avatar.width = 40;
@@ -578,9 +578,9 @@ function refreshPrivateMessages() {
                     messageElement.dataset.userEmail = message.user_email;
 
                     // Vérification et création sécurisée de l'avatar
-                    const user = message.user || { profile_picture: { url: "/static/images/default-avatar.png" } };
+                    const user = message.user || { profile_picture: { url: "/static/images/default-avatar.jpg" } };
                     const avatar = document.createElement('img');
-                    avatar.src = user.profile_picture && user.profile_picture.url ? user.profile_picture.url : "/static/images/default-avatar.png";
+                    avatar.src = user.profile_picture && user.profile_picture.url ? user.profile_picture.url : "/static/images/default-avatar.jpg";
                     avatar.alt = 'Profile Picture';
                     avatar.className = 'rounded-circle';
                     avatar.width = 40;

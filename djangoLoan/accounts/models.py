@@ -1,7 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from uuid import uuid4
-from accounts.utils import generate_profile_picture
+import os
+
+MEDIA_DIR = os.path.join(os.path.dirname(__file__), "media")
 
 class CustomUser(AbstractUser):
     id = models.UUIDField(primary_key=True, default=uuid4)
@@ -22,9 +24,8 @@ class CustomUser(AbstractUser):
         return self.email
 
     def save(self, *args, **kwargs):
-        if not self.profile_picture:  # Vérifie si l'utilisateur n'a pas encore d'image
-            first_letter = self.email[0].upper() if self.email else "U"
-            self.profile_picture = generate_profile_picture(first_letter)
+        if not self.profile_picture:  
+            self.profile_picture.name = os.path.join(MEDIA_DIR, 'default-avatar.jpg')
         
         super().save(*args, **kwargs)
 
