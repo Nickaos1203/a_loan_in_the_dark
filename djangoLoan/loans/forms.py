@@ -70,23 +70,13 @@ class LoanForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         
-        # Définir les ChoiceFields ici
-        self.fields['rev_line_cr'] = forms.ChoiceField(choices=[(None, 'N/A'), ('0', 'Non'), ('1', 'Oui')], required=False)
-        self.fields['low_doc'] = forms.ChoiceField(choices=[(None, 'N/A'), ('0', 'Non'), ('1', 'Oui')], required=False)
-        self.fields['new_exist'] = forms.ChoiceField(choices=[(None, 'N/A'), ('0', 'Non'), ('1', 'Oui')], required=False)
-        self.fields['has_franchise'] = forms.ChoiceField(choices=[(None, 'N/A'), ('0', 'Non'), ('1', 'Oui')], required=False)
-        self.fields['recession'] = forms.ChoiceField(choices=[(None, 'N/A'), ('0', 'Non'), ('1', 'Oui')], required=False)
-        self.fields['urban_rural'] = forms.ChoiceField(choices=[(None, 'N/A'), ('0', 'Non'), ('1', 'Oui')], required=False)
-        
-        # Conversion des valeurs entières en chaînes pour le préchargement correct
-        instance = kwargs.get('instance')
-        if instance:
-            binary_fields = ['rev_line_cr', 'low_doc', 'new_exist', 'has_franchise', 'recession', 'urban_rural']
-            for field in binary_fields:
-                value = getattr(instance, field)
-                if value is not None:
-                    # Convertir l'entier en chaîne pour correspondre aux choix
-                    self.initial[field] = str(value)
+        # Utiliser des entiers pour les choix
+        self.fields['rev_line_cr'] = forms.ChoiceField(choices=[(None, 'N/A'), (0, 'Non'), (1, 'Oui')], required=False)
+        self.fields['low_doc'] = forms.ChoiceField(choices=[(None, 'N/A'), (0, 'Non'), (1, 'Oui')], required=False)
+        self.fields['new_exist'] = forms.ChoiceField(choices=[(None, 'N/A'), (0, 'Non'), (1, 'Oui')], required=False)
+        self.fields['has_franchise'] = forms.ChoiceField(choices=[(None, 'N/A'), (0, 'Non'), (1, 'Oui')], required=False)
+        self.fields['recession'] = forms.ChoiceField(choices=[(None, 'N/A'), (0, 'Non'), (1, 'Oui')], required=False)
+        self.fields['urban_rural'] = forms.ChoiceField(choices=[(None, 'N/A'), (0, 'Non'), (1, 'Oui')], required=False)
         
         # Rendre les champs optionnels
         for field in self.fields.values():
@@ -94,12 +84,3 @@ class LoanForm(forms.ModelForm):
             
         self.fields['term'].required = True
         self.fields['gr_appv'].required = True
-    
-    # Garder vos méthodes clean_* pour la conversion vers la BD
-    def clean_rev_line_cr(self):
-        rev_line_cr = self.cleaned_data.get('rev_line_cr')
-        if rev_line_cr in {'1','0'}:
-            return int(rev_line_cr)
-        return None
-    
-    # Autres méthodes clean_* identiques...
