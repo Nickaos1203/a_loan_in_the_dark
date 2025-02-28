@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from app.schemas.user import UserCreate, UserRead
+from app.schemas.user import UserCreate, UserRead, UserPasswordUpdate, UserUpdate
 from sqlmodel import select
 from app.services.user import create_user, get_user_by_id, update_user
 from app.database import get_db
@@ -7,7 +7,6 @@ from sqlalchemy.orm import Session
 from uuid import UUID
 from app.services.auth import get_current_user
 from app.models.user import User
-from app.schemas.user import UserPasswordUpdate
 from app.services.user import update_user_password
 
 router = APIRouter()
@@ -75,9 +74,9 @@ async def read_users_me(current_user: User = Depends(get_current_user),  db: Ses
     """
     return get_user_by_id(db=db, user_id=current_user.id)
 
-@router.put("/me/edit")
+@router.patch("/me/edit")
 def update_user_me(
-    user_update: UserRead, 
+    user_update: UserUpdate, 
     db: Session = Depends(get_db), 
     current_user: User = Depends(get_current_user)
 ):
@@ -88,7 +87,7 @@ def update_user_me(
         db (Session): The database session.
         current_user (User): The currently authenticated user.
     """
-    update_user(db,user_update)
+    update_user(db, user=current_user,updated_user=user_update)
 
 @router.put("/update-password", response_model=dict)
 async def update_password(

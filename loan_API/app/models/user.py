@@ -26,6 +26,7 @@ class User(SQLModel, table=True):
     loans: List["Loan"] = Relationship(back_populates="user")
     first_name: Optional[str] = Field(default=None)
     last_name: Optional[str] = Field(default= None)
+    username: Optional[str] = Field(default= None)
     phone_number: Optional[str] = Field(default=None)
 
     # relation one-to-many. Un conseiller peut avoir plusieur user à conseiller 

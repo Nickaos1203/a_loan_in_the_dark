@@ -15,6 +15,7 @@ class UserCreate(BaseModel):
     email: EmailStr
     password: str
     is_staff: bool
+    username: Optional[str] = None
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     phone_number: Optional[str] = None
@@ -50,12 +51,28 @@ class UserRead(BaseModel):
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     phone_number: Optional[str] = None
+    username: Optional[str] = None
     advisor_id: Optional[UUID] = None
 
 
 class UserPasswordUpdate(BaseModel):
     new_password: str
 
-#  = Field(..., min_length=6, max_length=128)
+class UserUpdate(BaseModel):
+    """
+    Schema for reading user information.
+
+    Attributes:
+        id (UUID): The unique identifier of the user.
+        email (EmailStr): The email address of the user.
+        is_staff (bool): Indicates if the user has administrative privileges.
+        is_active (bool): Indicates if the user's account is active.
+        first_connection (bool): Specifies whether it is the user's first login.
+    """
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    phone_number: Optional[str] = None
+    username: Optional[str] = None
+    advisor_id: Optional[UUID] = None
 
 

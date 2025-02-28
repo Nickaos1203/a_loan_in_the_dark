@@ -1,5 +1,5 @@
 from app.models.user import User
-from app.schemas.user import UserCreate, UserRead
+from app.schemas.user import UserCreate, UserRead, UserUpdate
 from app.database import get_db
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
@@ -60,6 +60,7 @@ def create_user(db: Session, user_create: UserCreate) -> UserRead:
         last_name = db_user.last_name,
         advisor_id = db_user.advisor_id,
         phone_number = db_user.phone_number,
+        username = db_user.username,
     )
 
 def get_user_by_id(db: Session, user_id: UUID) -> UserRead:
@@ -93,9 +94,10 @@ def get_user_by_id(db: Session, user_id: UUID) -> UserRead:
         last_name = db_user.last_name,
         advisor_id = db_user.advisor_id,
         phone_number = db_user.phone_number,
+        username = db_user.username,
     )
 
-def update_user(db: Session, updated_user: User):
+def update_user(db: Session, user: User, updated_user: UserUpdate):
     """
     Update an existing user in the db.
 
@@ -105,16 +107,18 @@ def update_user(db: Session, updated_user: User):
     """
 
     # Search the existing user
-    db_user = db.query(User).filter(User.id == updated_user.id).first()
+    db_user = user
     if db_user is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="User not found")
 
-    # Update the existing user (db_user) with new informations
-    db_user = updated_user
+    db_user.first_name = updated_user.first_name
+    db_user.last_name = updated_user.last_name
+    db_user.advisor_id = updated_user.advisor_id
+    db_user.phone_number = updated_user.phone_number
+    db_user.username = updated_user.username
 
-    # Save user to the database
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
