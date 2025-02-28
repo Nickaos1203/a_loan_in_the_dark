@@ -8,6 +8,12 @@
       </button>
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav">
+                {% if request.user.is_authenticated %}
+                <li class="nav-item">
+                    <a class="nav-link" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <img src="{{ request.user.profile_picture.url }}" alt="Profile Picture" class="rounded-circle" width="40" height="40">
+                    </a>
+                </li>
                 <li class="nav-item">
                     <a class="nav-link active" aria-current="page" href={% url "accounts:dashboard" %}>Accueil</a>
                 </li>
@@ -23,9 +29,14 @@
                         <button type="submit" class="nav-link">Logout</button>
                     </form>
                 </li>
+                {% else %}
                 <li class="nav-item">
-                    <a class="nav-link disabled" aria-disabled="true">Disabled</a>
+                    <form action="{% url 'accounts:login' %}" method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="nav-link">Login</button>
+                    </form>
                 </li>
+                {% endif %}
             </ul>
         </div>
     </div>

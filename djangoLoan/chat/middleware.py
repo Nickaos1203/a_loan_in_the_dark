@@ -4,9 +4,6 @@ class ChatAuthMiddleware:
 
     def __call__(self, request):
         if request.path.startswith('/chat/'):
-            print(f"Chat Middleware: URL {request.path}, Token présent: {bool(request.session.get('token'))}")
-            print(f"Chat Middleware: User info: {bool(request.session.get('user_info'))}")
-            print(f"Chat Middleware: Token: {request.session.get('token')[:10] if request.session.get('token') else None}...")
 
             # Cette condition doit bloquer les requêtes sans token
             if not request.session.get('token') or not request.session.get('user_info'):

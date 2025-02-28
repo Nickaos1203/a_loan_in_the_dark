@@ -461,70 +461,85 @@ document.addEventListener('DOMContentLoaded', function() {
         return cookieValue;
     }
     
-    // Refresh general messages
-    function refreshGeneralMessages() {
-        fetch('/chat/api/messages/')
-            .then(response => {
-                if (!response.ok) {
-                    if (response.status === 401) {
-                        window.location.href = '/accounts/login/?next=/chat/';
-                    }
-                    throw new Error('Error retrieving messages');
+// Refresh general messages
+function refreshGeneralMessages() {
+    fetch('/chat/api/messages/')
+        .then(response => {
+            if (!response.ok) {
+                if (response.status === 401) {
+                    window.location.href = '/accounts/login/?next=/chat/';
                 }
-                return response.json();
-            })
-            .then(data => {
-                // Refresh only if user is not typing
-                if (document.activeElement !== generalInput) {
-                    // Get current message IDs
-                    const currentMessageIds = Array.from(generalMessages.querySelectorAll('.message'))
-                        .map(el => el.dataset.messageId);
-                        
-                    // Check for new messages
-                    const newMessages = data.messages.filter(msg => 
-                        !currentMessageIds.includes(msg.id.toString())
-                    );
+                throw new Error('Error retrieving messages');
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Refresh only if user is not typing
+            if (document.activeElement !== generalInput) {
+                // Get current message IDs
+                const currentMessageIds = Array.from(generalMessages.querySelectorAll('.message'))
+                    .map(el => el.dataset.messageId);
                     
-                    if (newMessages.length > 0) {
-                        const wasScrolledToBottom = generalMessages.scrollHeight - generalMessages.clientHeight <= generalMessages.scrollTop + 10;
+                // Check for new messages
+                const newMessages = data.messages.filter(msg => 
+                    !currentMessageIds.includes(msg.id.toString())
+                );
+                
+                if (newMessages.length > 0) {
+                    const wasScrolledToBottom = generalMessages.scrollHeight - generalMessages.clientHeight <= generalMessages.scrollTop + 10;
+                    
+                    // Append only new messages
+                    newMessages.forEach(message => {
+                        const username = message.user_email.split('@')[0];
+                        const formattedDate = formatDate(message.timestamp);
                         
-                        // Append only new messages
-                        newMessages.forEach(message => {
-                            const username = message.user_email.split('@')[0];
-                            const formattedDate = formatDate(message.timestamp);
-                            
-                            const messageElement = document.createElement('div');
-                            messageElement.className = `message ${message.is_staff ? 'staff-message' : 'user-message'} p-2 mb-2`;
-                            messageElement.dataset.messageId = message.id;
-                            
-                            messageElement.innerHTML = `
-                                <strong class="text-white">
-                                    ${username} 
-                                    ${message.is_staff ? 
-                                        '<span class="badge bg-warning text-dark">conseiller</span>' : 
-                                        '<span class="role-badge">utilisateur</span>'
-                                    }
-                                </strong>
-                                <span class="message-timestamp">${formattedDate}</span>
-                                <div class="text-white">${message.content}</div>
-                            `;
-                            
-                            generalMessages.appendChild(messageElement);
-                        });
+                        const messageElement = document.createElement('div');
+                        messageElement.className = `message ${message.is_staff ? 'staff-message' : 'user-message'} p-2 mb-2`;
+                        messageElement.dataset.messageId = message.id;
+
+                        // Vérification et création sécurisée de l'avatar
+                        const user = message.user || { profile_picture: { url: "/static/images/default-avatar.png" } };
+                        const avatar = document.createElement('img');
+                        avatar.src = user.profile_picture && user.profile_picture.url ? user.profile_picture.url : "/static/images/default-avatar.png";
+                        avatar.alt = 'Profile Picture';
+                        avatar.className = 'rounded-circle';
+                        avatar.width = 40;
+                        avatar.height = 40;
+
+
+                        // Création du contenu du message
+                        const messageContent = document.createElement('div');
+                        messageContent.innerHTML = `
+                            <strong class="text-white">
+                                ${username} 
+                                ${message.is_staff ? 
+                                    '<span class="badge bg-warning text-dark">conseiller</span>' : 
+                                    '<span class="role-badge">utilisateur</span>'
+                                }
+                            </strong>
+                            <span class="message-timestamp">${formattedDate}</span>
+                            <div class="text-white">${message.content}</div>
+                        `;
+
+                        // Ajouter l'avatar AVANT le texte
+                        messageElement.appendChild(avatar);
+                        messageElement.appendChild(messageContent);
                         
-                        // Auto-scroll if was at bottom
-                        if (wasScrolledToBottom) {
-                            generalMessages.scrollTop = generalMessages.scrollHeight;
-                        }
+                        generalMessages.appendChild(messageElement);
+                    });
+                    
+                    // Auto-scroll if was at bottom
+                    if (wasScrolledToBottom) {
+                        generalMessages.scrollTop = generalMessages.scrollHeight;
                     }
                 }
-            })
-            .catch(error => {
-                console.error('Error retrieving messages:', error);
-            });
-    }
+            }
+        })
+        .catch(error => {
+            console.error('Error retrieving messages:', error);
+        });
+}
     
-// Refresh private messages
 function refreshPrivateMessages() {
     fetch('/chat/api/private/messages/')
     .then(response => {
@@ -561,6 +576,16 @@ function refreshPrivateMessages() {
                     messageElement.dataset.messageId = message.id;
                     messageElement.dataset.userId = message.user_id;
                     messageElement.dataset.userEmail = message.user_email;
+
+                    // Vérification et création sécurisée de l'avatar
+                    const user = message.user || { profile_picture: { url: "/static/images/default-avatar.png" } };
+                    const avatar = document.createElement('img');
+                    avatar.src = user.profile_picture && user.profile_picture.url ? user.profile_picture.url : "/static/images/default-avatar.png";
+                    avatar.alt = 'Profile Picture';
+                    avatar.className = 'rounded-circle';
+                    avatar.width = 40;
+                    avatar.height = 40;
+
                     
                     let replyButton = '';
                     if (isStaff && !message.is_staff) {
@@ -584,9 +609,14 @@ function refreshPrivateMessages() {
                         ${replyButton}
                     `;
                     
+                    // Ajouter l'avatar dans le message
+                    const strongElement = messageElement.querySelector('strong');
+                    strongElement.appendChild(avatar);
+                    
+                    // Ajouter le message à la section des messages privés
                     privateMessages.appendChild(messageElement);
                 });
-                
+
                 // Auto-scroll if was at bottom
                 if (wasScrolledToBottom) {
                     privateMessages.scrollTop = privateMessages.scrollHeight;

@@ -15,7 +15,6 @@ class UserCreate(BaseModel):
     email: EmailStr
     password: str
     is_staff: bool
-    profile_picture: Optional[str] = None
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     phone_number: Optional[str] = None
@@ -42,14 +41,12 @@ class UserRead(BaseModel):
         is_staff (bool): Indicates if the user has administrative privileges.
         is_active (bool): Indicates if the user's account is active.
         first_connection (bool): Specifies whether it is the user's first login.
-        profile_picture (Optional[str]): URL or path to the user's profile picture.
     """
     id: UUID
     email: EmailStr
     is_staff: bool
     is_active: bool
     first_connection: bool
-    profile_picture: Optional[str] = None
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     phone_number: Optional[str] = None

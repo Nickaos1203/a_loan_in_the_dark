@@ -30,10 +30,11 @@ def init_db():
         print("Utilisateurs staff importés avec succès")
     
     # Sauvegarder la liste d'utilisateurs dans un fichier JSON
-    with open('users_data.json', 'w') as f:
+    with open('../djangoLoan/users_data.json', 'w') as f:
         json.dump([user.dict() for user in list_user_json], f, indent=4, default=uuid_serializer)  # Utilisation de l'encodeur personnalisé
 
     print("Les utilisateurs ont été enregistrés dans le fichier 'users_data.json'")
+    
 
 # Exécuter la fonction si ce fichier est lancé directement
 if __name__ == "__main__":

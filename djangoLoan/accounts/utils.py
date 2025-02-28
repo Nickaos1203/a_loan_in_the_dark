@@ -2,6 +2,9 @@ import requests
 from django.conf import settings
 import logging
 import json
+from PIL import Image, ImageDraw, ImageFont
+from django.core.files.base import ContentFile
+from io import BytesIO
 
 logger = logging.getLogger(__name__)
 
@@ -75,3 +78,33 @@ class APIClient:
         except Exception as e:
             print(f"Erreur dans update_password : {str(e)}")
             return {"error": str(e)}
+
+def generate_profile_picture(letter):
+    """Génère une image avec la première lettre de l'email."""
+    img_size = (100, 100)  # Taille de l'image
+    background_color = (0, 123, 255)  # Bleu par défaut
+    text_color = (255, 255, 255)  # Blanc
+    
+    # Création de l'image
+    img = Image.new('RGB', img_size, background_color)
+    draw = ImageDraw.Draw(img)
+
+    # Chargement d'une police de caractères (optionnel, sinon utilise la police par défaut)
+    try:
+        font = ImageFont.truetype("arial.ttf", 50)
+    except IOError:
+        font = ImageFont.load_default()
+
+    # Taille du texte
+    text_size = draw.textbbox((0, 0), letter, font=font)
+    text_x = (img_size[0] - text_size[2]) / 2
+    text_y = (img_size[1] - text_size[3]) / 2
+
+    # Dessiner la lettre
+    draw.text((text_x, text_y), letter, fill=text_color, font=font)
+
+    # Sauvegarde en mémoire
+    img_io = BytesIO()
+    img.save(img_io, format='PNG')
+
+    return ContentFile(img_io.getvalue(), name=f"default_{letter}.png")

@@ -15,7 +15,6 @@ class User(SQLModel, table=True):
         is_staff (bool): Indicates if the user has administrative privileges.
         is_active (bool): Defines if the user's account is currently active.
         first_connection (bool): Specifies if the user is logging in for the first time.
-        profile_picture (Optional[str]): URL or path to the user's profile picture.
     """
     
     id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
@@ -24,7 +23,6 @@ class User(SQLModel, table=True):
     is_staff: bool = Field(default=False)
     is_active: bool = Field(default=False)
     first_connection: bool = Field(default=True)
-    profile_picture: Optional[str] = Field(default=None)
     loans: List["Loan"] = Relationship(back_populates="user")
     first_name: Optional[str] = Field(default=None)
     last_name: Optional[str] = Field(default= None)

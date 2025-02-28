@@ -1,35 +1,32 @@
 [
     {
-        "id": "49b7d57b-cb7c-411a-a9d5-c1caac58f7ec",
+        "id": "824b30e9-74e3-4f7d-bf64-f86653dcbd7e",
         "email": "vic@staff.fr",
         "is_staff": true,
         "is_active": true,
         "first_connection": true,
-        "profile_picture": null,
         "first_name": null,
         "last_name": null,
         "phone_number": null,
         "advisor_id": null
     },
     {
-        "id": "56e38c09-5f1d-425f-81d7-3b037a35219a",
+        "id": "3fa2918e-ee80-463d-bb62-eb0ccb9e220b",
         "email": "nico@staff.fr",
         "is_staff": true,
         "is_active": true,
         "first_connection": true,
-        "profile_picture": null,
         "first_name": null,
         "last_name": null,
         "phone_number": null,
         "advisor_id": null
     },
     {
-        "id": "02107749-0686-40e3-afff-7632f069c5f1",
+        "id": "0ffc4e9d-0690-480a-acf8-481264e5b4cf",
         "email": "leo@staff.fr",
         "is_staff": true,
         "is_active": true,
         "first_connection": true,
-        "profile_picture": null,
         "first_name": null,
         "last_name": null,
         "phone_number": null,

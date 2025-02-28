@@ -24,6 +24,23 @@ def init_django_db():
         else:
             print(f"L'utilisateur {user['email']} existe déjà.")
 
+    MEDIA_DIR = os.path.join(os.path.dirname(__file__), "media")
+    image_path_vic = os.path.join(MEDIA_DIR, "vic-picture.jpg")
+    vic = CustomUser.objects.filter(email="vic@staff.fr").first()
+    image_path_nico = os.path.join(MEDIA_DIR, "nico-picture.jpg")
+    nico = CustomUser.objects.filter(email="nico@staff.fr").first()
+    image_path_leo = os.path.join(MEDIA_DIR, "leo-picture.jpg")
+    leo = CustomUser.objects.filter(email="leo@staff.fr").first()
+    user_list = [(vic,image_path_vic, "vic-picture.jpg"),(nico,image_path_nico, "nico-picture.jpg"),(leo, image_path_leo, "leo-picture.jpg")]
+    for user, image_path, name in user_list:
+        if user:
+            with open(image_path, "rb") as image_file:
+                user.profile_picture.save(name, image_file, save=True)
+            print(f"✅ Photo de profil mise à jour pour {user.email}")
+        else:
+            print("❌ Utilisateur non trouvé !")
+
+
 
 
 
