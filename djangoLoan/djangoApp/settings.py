@@ -105,6 +105,20 @@ from dotenv import load_dotenv
 # Charger les variables d'environnement
 load_dotenv()
 
+DATABASES = {
+    'default': {
+        'ENGINE': 'sql_server.pyodbc',
+        'NAME': 'bddussba',
+        'USER': 'leo',
+        'PASSWORD': 'leflibustierdu59!',
+        'HOST': 'lgallussqlserver.database.windows.net',
+        'PORT': '',
+        'OPTIONS': {
+            'driver': 'ODBC Driver 18 for SQL Server',
+        },
+    }
+}
+
 # Configuration API
 API_BASE_URL = os.getenv('API_BASE_URL', 'http://localhost:8000')
 

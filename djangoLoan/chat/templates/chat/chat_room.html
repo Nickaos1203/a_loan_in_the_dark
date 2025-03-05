@@ -44,7 +44,7 @@
                             <div class="message {% if message.is_staff %}staff-message{% else %}user-message{% endif %} p-2 mb-2" data-message-id="{{ message.id }}">
                                 <strong class="text-white">
                                     {{ message.user.email }} 
-                                    <img src="{{ message.user.profile_picture.url }}" alt="Profile Picture" class="rounded-circle" width="40" height="40">
+                                    {% comment %} <img src="{{ message.user.profile_picture.url }}" alt="Profile Picture" class="rounded-circle" width="40" height="40"> {% endcomment %}
                                     {% if message.is_staff %}
                                         <span class="badge bg-warning text-dark">conseiller</span>
                                     {% else %}
@@ -80,11 +80,10 @@
                         {% for message in private_messages %}
                             <div class="message {% if message.is_staff %}staff-message{% else %}user-message{% endif %} p-2 mb-2" 
                                  data-message-id="{{ message.id }}" 
-                                 data-user-id="{{ message.user.id }}" 
-                                 data-user-email="{{ message.user.email }}" data-user-img="{{ message.user.profile_picture.url }}">
+                                 data-user-id="{{ message.user.id }}">
                                 <strong class="text-white">
                                     {{ message.user.email }} 
-                                    <img src="{{ message.user.profile_picture.url }}" alt="Profile Picture" class="rounded-circle" width="40" height="40">
+                                    {% comment %} <img src="{{ message.user.profile_picture.url }}" alt="Profile Picture" class="rounded-circle" width="40" height="40"> {% endcomment %}
                                     {% if message.is_staff %}
                                         <span class="badge bg-warning text-dark">conseiller</span>
                                     {% else %}

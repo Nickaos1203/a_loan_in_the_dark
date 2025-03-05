@@ -8,7 +8,7 @@ app = FastAPI(title="Loan API", description="API de gestion des prêts bancaires
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://127.0.0.1:8001"],  # L'URL de votre Django
+    allow_origins=["http://lgallus-django-app.[region].azurecontainer.io:8001"],  
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

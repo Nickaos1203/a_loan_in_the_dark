@@ -12,7 +12,7 @@
                 {% if request.user.is_authenticated %}
                 <li class="nav-item">
                     <a class="nav-link" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <img src="{{ request.user.profile_picture.url }}" alt="Profile Picture" class="rounded-circle" width="40" height="40">
+                        {% comment %} <img src="{{ request.user.profile_picture.url }}" alt="Profile Picture" class="rounded-circle" width="40" height="40"> {% endcomment %}
                     </a>
                 </li>
                 <li class="nav-item">
