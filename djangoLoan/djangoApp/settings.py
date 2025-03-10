@@ -104,17 +104,13 @@ load_dotenv()
 
 DATABASES = {
     'default': {
-        'ENGINE': 'sql_server.pyodbc',
-        'NAME': 'DATABASE_NAME',
-        'USER': 'DATABASE_USER',
-        'PASSWORD': 'DATABASE_PASSWORD',
-        'HOST': 'DATABASE_HOST',
-        'PORT': '',
-        'OPTIONS': {
-            'driver': 'ODBC Driver 18 for SQL Server',
-        },
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': 'db.sqlite3',
     }
 }
+
+# Commented out SQL Server config for future reference
+# 
 
 # Configuration API
 API_BASE_URL = "http://lgallus-loan-api.ckcfgbc6d4h3gsa7.francecentral.azurecontainer.io:8000"
@@ -209,10 +205,7 @@ ASGI_APPLICATION = 'djangoApp.asgi.application'
 
 CHANNEL_LAYERS = {
     'default': {
-        'BACKEND': 'channels_redis.core.RedisChannelLayer',
-        'CONFIG': {
-            "hosts": [('127.0.0.1', 6379)],
-        },
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
     },
 }
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"

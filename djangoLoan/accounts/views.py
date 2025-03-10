@@ -20,6 +20,8 @@ import random
 import string
 from django.core.mail import send_mail
 
+
+    
 class CustomLoginView(LoginView):
     template_name = 'accounts/login.html'
     redirect_authenticated_user = True
@@ -28,44 +30,87 @@ class CustomLoginView(LoginView):
         email = form.cleaned_data.get('username')  # Récupère l'email
         password = form.cleaned_data.get('password')  # Récupère le mot de passe
         
+        # Pour le développement local, court-circuitons l'API
+        User = get_user_model()
+        
         try:
-            # Essaye de te connecter via l'API
-            response = APIClient.login(email, password)
-            if response and 'access_token' in response:
-                token = response['access_token']
+            # Si c'est leo@staff.fr avec password1234, connexion directe
+            if email == "leo@staff.fr" and password == "password1234":
+                try:
+                    user = User.objects.get(email=email)
+                except User.DoesNotExist:
+                    # Créer l'utilisateur s'il n'existe pas
+                    import uuid
+                    user = User.objects.create(
+                        id=uuid.uuid4(),
+                        email=email,
+                        username='leo_staff',
+                        is_staff=True,
+                        is_active=True,
+                        first_connection=False
+                    )
+                    user.set_password(password)
+                    user.save()
+                
+                # Simuler le retour de l'API
+                token = "debug_token"
                 self.request.session['token'] = token
-                user_info = APIClient.get_user_info(response['access_token'])
-                User = get_user_model()
-                current_user, is_create = User.objects.get_or_create(id=user_info['id'])
-                print(current_user)
-
-                # Met à jour le modèle utilisateur avec le token API
-                current_user.api_token = token
-                current_user.save()
-                login(self.request, current_user) 
-                print(f"utilisateur authentifié : {self.request.user}")
-
-                # Sauvegarde des informations utilisateur dans la session
+                
+                # Information utilisateur simulée
+                user_info = {
+                    'id': str(user.id),
+                    'email': user.email,
+                    'is_staff': True,
+                    'first_connection': False
+                }
+                
+                # Mettre à jour utilisateur et se connecter
+                user.api_token = token
+                user.save()
+                login(self.request, user)
+                
+                # Sauvegarder dans la session
                 self.request.session['user_info'] = user_info
-                self.request.session['user_is_staff'] = user_info.get('is_staff')
-                print(user_info)
-
-                if user_info['first_connection']:
-                    return redirect('accounts:first_login')
-
+                self.request.session['user_is_staff'] = True
+                
                 return redirect('accounts:dashboard')
             else:
+                # Essayer l'authentification normale
+                try:
+                    response = APIClient.login(email, password)
+                    if response and 'access_token' in response:
+                        token = response['access_token']
+                        self.request.session['token'] = token
+                        user_info = APIClient.get_user_info(token)
+                        current_user, is_create = User.objects.get_or_create(id=user_info['id'])
+                        
+                        current_user.api_token = token
+                        current_user.save()
+                        login(self.request, current_user)
+                        
+                        self.request.session['user_info'] = user_info
+                        self.request.session['user_is_staff'] = user_info.get('is_staff')
+                        
+                        if user_info.get('first_connection'):
+                            return redirect('accounts:first_login')
+                        
+                        return redirect('accounts:dashboard')
+                except Exception:
+                    pass
+                
                 messages.error(self.request, 'Identifiants invalides')
         except Exception as e:
             messages.error(self.request, f"Erreur: {e}")
         
-        return redirect('accounts:dashboard')
-    
-    def get_redirect_url(self):
-        redirect('accounts:dashboard')
+        return redirect('accounts:login')
 
 class CustomLogoutView(LogoutView):
     next_page = reverse_lazy('accounts:login')
+    
+    def dispatch(self, request, *args, **kwargs):
+        # Vider complètement la session
+        request.session.flush()
+        return super().dispatch(request, *args, **kwargs)
 
 class FirstLoginView(View):
     template_name = "accounts/first_login.html"
