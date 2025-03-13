@@ -20,8 +20,6 @@ import random
 import string
 from django.core.mail import send_mail
 
-
-    
 class CustomLoginView(LoginView):
     template_name = 'accounts/login.html'
     redirect_authenticated_user = True
@@ -30,87 +28,51 @@ class CustomLoginView(LoginView):
         email = form.cleaned_data.get('username')  # Récupère l'email
         password = form.cleaned_data.get('password')  # Récupère le mot de passe
         
-        # Pour le développement local, court-circuitons l'API
-        User = get_user_model()
-        
         try:
-            # Si c'est leo@staff.fr avec password1234, connexion directe
-            if email == "leo@staff.fr" and password == "password1234":
-                try:
-                    user = User.objects.get(email=email)
-                except User.DoesNotExist:
-                    # Créer l'utilisateur s'il n'existe pas
-                    import uuid
-                    user = User.objects.create(
-                        id=uuid.uuid4(),
-                        email=email,
-                        username='leo_staff',
-                        is_staff=True,
-                        is_active=True,
-                        first_connection=False
-                    )
-                    user.set_password(password)
-                    user.save()
-                
-                # Simuler le retour de l'API
-                token = "debug_token"
+            # Essaye de te connecter via l'API
+            print(f"hoooooooooooop : {settings.API_BASE_URL}/auth/login")
+            response = APIClient.login(email, password)
+            if response and 'access_token' in response:
+                token = response['access_token']
                 self.request.session['token'] = token
-                
-                # Information utilisateur simulée
-                user_info = {
-                    'id': str(user.id),
-                    'email': user.email,
-                    'is_staff': True,
-                    'first_connection': False
-                }
-                
-                # Mettre à jour utilisateur et se connecter
-                user.api_token = token
-                user.save()
-                login(self.request, user)
-                
-                # Sauvegarder dans la session
+                user_info = APIClient.get_user_info(response['access_token'])
+                User = get_user_model()
+                current_user, is_create = User.objects.get_or_create(id=user_info['id'])
+                print(current_user)
+
+                # Met à jour le modèle utilisateur avec le token API
+                current_user.api_token = token
+                current_user.is_staff = user_info.get('is_staff', False) 
+                current_user.save()
+                login(self.request, current_user) 
+                print(f"utilisateur authentifié : {self.request.user}")
+
+                # Sauvegarde des informations utilisateur dans la session
                 self.request.session['user_info'] = user_info
-                self.request.session['user_is_staff'] = True
-                
+                self.request.session['user_is_staff'] = user_info.get('is_staff')
+                print(user_info)
+
+                if user_info['first_connection']:
+                    return redirect('accounts:first_login')
+
                 return redirect('accounts:dashboard')
             else:
-                # Essayer l'authentification normale
-                try:
-                    response = APIClient.login(email, password)
-                    if response and 'access_token' in response:
-                        token = response['access_token']
-                        self.request.session['token'] = token
-                        user_info = APIClient.get_user_info(token)
-                        current_user, is_create = User.objects.get_or_create(id=user_info['id'])
-                        
-                        current_user.api_token = token
-                        current_user.save()
-                        login(self.request, current_user)
-                        
-                        self.request.session['user_info'] = user_info
-                        self.request.session['user_is_staff'] = user_info.get('is_staff')
-                        
-                        if user_info.get('first_connection'):
-                            return redirect('accounts:first_login')
-                        
-                        return redirect('accounts:dashboard')
-                except Exception:
-                    pass
-                
                 messages.error(self.request, 'Identifiants invalides')
         except Exception as e:
             messages.error(self.request, f"Erreur: {e}")
         
-        return redirect('accounts:login')
+        return redirect('accounts:dashboard')
+    
+    def form_invalid(self, form):
+        print("❌ form_invalid() - Erreur dans le formulaire")
+        print(form.errors)  # Affiche les erreurs du formulaire
+        return super().form_invalid(form)
+
+    def get_redirect_url(self):
+        redirect('accounts:dashboard')
 
 class CustomLogoutView(LogoutView):
     next_page = reverse_lazy('accounts:login')
-    
-    def dispatch(self, request, *args, **kwargs):
-        # Vider complètement la session
-        request.session.flush()
-        return super().dispatch(request, *args, **kwargs)
 
 class FirstLoginView(View):
     template_name = "accounts/first_login.html"
@@ -146,6 +108,7 @@ class FirstLoginView(View):
 
 class RedirectDashboardView(View):
     def get(self, request, *args, **kwargs):
+        print(f"User: {request.user.email}, Staff status: {request.user.is_staff}")
         if request.user.is_staff:
             return redirect('accounts:advisor_dashboard')
         else:
@@ -178,18 +141,21 @@ class CreateUserView(CreateView):
     
 
     def form_valid(self, form):
+        print("form is called !")
         token = self.request.user.api_token
         headers = {
                 "Authorization": f"Bearer {token}",
                 "Accept": "application/json"
             }
         api_url = os.getenv("API_BASE_URL", settings.API_BASE_URL) + "/create_user"
+        print(f"api_url : {api_url}")
         django_data = form.cleaned_data
         password = self.generate_password()
         django_data["password"] = password
         try:
             response = requests.post(api_url, json=django_data, headers=headers)
             data = response.json()
+            print(data)
             if response.status_code == 201:
                 form.instance.id = data.get("id")
                 form.instance.set_password(password)
@@ -209,6 +175,10 @@ class CreateUserView(CreateView):
         message = f"Bonjour,\n\nVotre compte a été créé avec succès !\n\nVoici vos identifiants :\nEmail: {email}\nMot de passe: {password}\n\nVeuillez vous connecter et modifier votre mot de passe dès que possible.\n\nCordialement,\nL'équipe."
         from_email = settings.DEFAULT_FROM_EMAIL
         send_mail(subject, message, from_email, [email])
+    
+    def form_invalid(self, form):
+        print("form_invalid is called!")
+        return super().form_invalid(form)
 
 class UserListView(ListView):
     model = CustomUser

@@ -23,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
-load_dotenv()
+load_dotenv(override=True)
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
 
@@ -87,33 +87,31 @@ ASGI_APPLICATION = 'djangoApp.asgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
+DATABASES = {
+    'default': {
+        'ENGINE': os.getenv('MSSQL_ENGINE'),
+        'NAME': os.getenv('DATABASE_NAME'),
+        'USER': os.getenv('DATABASE_USER') ,
+        'PASSWORD': os.getenv('DATABASE_PASSWORD'),
+        'HOST': os.getenv('DB_SERVER'),
+        'PORT': '1433', 
+        'OPTIONS': {
+            'driver': 'ODBC Driver 18 for SQL Server', 
+            'TrustServerCertificate': 'yes', 
+            'Encrypt': 'yes',
+        },
+    }
+}
 
 # variables pour l'import des images
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
-
-
-# Configuration API
-from pathlib import Path
-import os
-from dotenv import load_dotenv
-
-# Charger les variables d'environnement
-load_dotenv()
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': 'db.sqlite3',
-    }
-}
-
 # Commented out SQL Server config for future reference
 # 
 
 # Configuration API
-API_BASE_URL = "http://lgallus-loan-api.ckcfgbc6d4h3gsa7.francecentral.azurecontainer.io:8000"
+API_BASE_URL = os.getenv("API_BASE_URL")
 
 
 # Password validation
@@ -132,6 +130,7 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+
 
 
 # Internationalization
@@ -213,5 +212,5 @@ EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = "ladysimplon@gmail.com"
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+EMAIL_HOST_PASSWORD = f"{os.getenv('EMAIL_HOST_PASSWORD1')} {os.getenv('EMAIL_HOST_PASSWORD2')} {os.getenv('EMAIL_HOST_PASSWORD3')} {os.getenv('EMAIL_HOST_PASSWORD4')}"
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
