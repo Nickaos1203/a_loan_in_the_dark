@@ -25,46 +25,55 @@ class CustomLoginView(LoginView):
     redirect_authenticated_user = True
 
     def form_valid(self, form):
-        email = form.cleaned_data.get('username')  # Récupère l'email
-        password = form.cleaned_data.get('password')  # Récupère le mot de passe
-        
+        email = form.cleaned_data.get('username')
+        password = form.cleaned_data.get('password')
+    
         try:
-            # Essaye de te connecter via l'API
-            print(f"hoooooooooooop : {settings.API_BASE_URL}/auth/login")
             response = APIClient.login(email, password)
             if response and 'access_token' in response:
                 token = response['access_token']
+                user_info = APIClient.get_user_info(token)
                 self.request.session['token'] = token
-                user_info = APIClient.get_user_info(response['access_token'])
-                User = get_user_model()
-                current_user, is_create = User.objects.get_or_create(id=user_info['id'])
-                print(current_user)
-
-                # Met à jour le modèle utilisateur avec le token API
-                current_user.api_token = token
-                current_user.is_staff = user_info.get('is_staff', False) 
-                current_user.save()
-                login(self.request, current_user) 
-                print(f"utilisateur authentifié : {self.request.user}")
-
-                # Sauvegarde des informations utilisateur dans la session
                 self.request.session['user_info'] = user_info
-                self.request.session['user_is_staff'] = user_info.get('is_staff')
-                print(user_info)
-
-                if user_info['first_connection']:
+            
+                User = get_user_model()
+            
+            # Supprimer d'abord tous les utilisateurs existants avec cet email (sauf s'il y en a un avec l'ID correct)
+                existing_users = User.objects.filter(email=email).exclude(id=user_info['id'])
+                if existing_users.exists():
+                    print(f"Suppression de {existing_users.count()} utilisateurs avec l'email {email}")
+                    existing_users.delete()
+            
+            # Maintenant, essayer de récupérer ou créer l'utilisateur par ID
+                current_user, created = User.objects.update_or_create(
+                    id=user_info['id'],
+                    defaults={
+                        'email': email,
+                        'username': user_info.get('username') or email.split('@')[0],
+                        'is_staff': user_info.get('is_staff', False),
+                        'api_token': token
+                    }
+                )
+            
+                print(f"Utilisateur {'créé' if created else 'mis à jour'}: {current_user.id}")
+            
+                login(self.request, current_user)
+            
+                if user_info.get('first_connection', False):
                     return redirect('accounts:first_login')
-
+            
                 return redirect('accounts:dashboard')
             else:
                 messages.error(self.request, 'Identifiants invalides')
         except Exception as e:
             messages.error(self.request, f"Erreur: {e}")
-        
-        return redirect('accounts:dashboard')
+            import traceback
+            print(traceback.format_exc())
+    
+        return redirect('accounts:login')
     
     def form_invalid(self, form):
-        print("❌ form_invalid() - Erreur dans le formulaire")
+        print("form_invalid() - Erreur dans le formulaire")
         print(form.errors)  # Affiche les erreurs du formulaire
         return super().form_invalid(form)
 
@@ -108,11 +117,16 @@ class FirstLoginView(View):
 
 class RedirectDashboardView(View):
     def get(self, request, *args, **kwargs):
+        # Vérifier si l'utilisateur est authentifié
+        if not request.user.is_authenticated:
+            return redirect('accounts:login')
+            
         print(f"User: {request.user.email}, Staff status: {request.user.is_staff}")
         if request.user.is_staff:
             return redirect('accounts:advisor_dashboard')
         else:
             return redirect('accounts:user_dashboard')
+        
         
 class UserDashboardView(TemplateView):
     template_name = 'accounts/client_dashboard.html'
