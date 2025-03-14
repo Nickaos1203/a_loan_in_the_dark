@@ -5,6 +5,11 @@ from app.services.user import create_user
 from app.schemas.user import UserCreate
 import sqlmodel
 import uuid
+from app.models.loan import Loan
+
+def create_tables():
+    sqlmodel.SQLModel.metadata.create_all(engine)
+    print("Tables créées avec succès")
 
 # Liste des utilisateurs à créer
 users_data = [
@@ -38,4 +43,5 @@ def init_db():
 
 # Exécuter la fonction si ce fichier est lancé directement
 if __name__ == "__main__":
+    create_tables()
     init_db()

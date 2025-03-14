@@ -1,4 +1,5 @@
 from sqlmodel import SQLModel, Field, Relationship
+import sqlalchemy as sa
 from typing import Optional, List
 from uuid import uuid4, UUID
 import bcrypt
@@ -18,7 +19,7 @@ class User(SQLModel, table=True):
     """
     
     id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
-    email: str = Field(unique=True, index=True, nullable=False)
+    email: str = Field(max_length=255, unique=True, index=True, nullable=False)
     hashed_password: str = Field(nullable=False)
     is_staff: bool = Field(default=False)
     is_active: bool = Field(default=False)
