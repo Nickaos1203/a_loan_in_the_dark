@@ -14,6 +14,8 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 
+load_dotenv(override=True)
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -27,7 +29,7 @@ SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'True').lower() == 'true'
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -41,8 +43,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'channels',
     'accounts',
-    'chat',
     'loans',
+    'chat',
     'news',
     'corsheaders'
 ]
@@ -84,10 +86,25 @@ ASGI_APPLICATION = 'djangoApp.asgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
+# Environnment variables
+server = os.getenv("SERVER_DB")
+database = os.getenv("DATABASE_NAME")
+username = os.getenv("USERNAME_DB")
+password = os.getenv("PASSWORD_DB")
+driver = os.getenv("DRIVER_DB")
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'mssql',
+        'NAME': database,
+        'USER': username,
+        'PASSWORD': password,
+        'HOST': server,
+        'PORT': '1433',
+        'OPTIONS': {
+            'driver': driver,
+            'extra_params': 'TrustServerCertificate=yes;',
+            }
     }
 }
 
@@ -200,7 +217,7 @@ CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
-            "hosts": [('127.0.0.1', 6379)],
+            "hosts": [('0.0.0.0', 6379)],
         },
     },
 }
